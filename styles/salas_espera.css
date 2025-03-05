@@ -30,40 +30,15 @@ body {
     color: white;
 }
 
-.container-salas h3 {
-    font-size: 30px;
-}
-
 .container-salas .container-div-salas {
     width: 100%;
-    overflow: auto;
-    height: 350px;
-}
-
-.container-div-salas .container-name-salas {
-    width: 100%;
-    /* height: 100%; */
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
 }
 
-.container-name-salas .container-persons h4 i {
-    font-size: 20px;
-}
-
-.container-name-salas .container-button a button {
-    border: none;
-    border-radius: 10px;
-    width: 100px;
-    height: 40px;
+.container-div-salas .container-persons {
+    width: 100%;
     background-color: #ffcb46;
-    cursor: pointer;
-}
-
-.container-name-salas .container-button .button-disabled {
-    border: none;
-    border-radius: 10px;
-    width: 100px;
-    height: 40px;
-    background-color: #cdcdcd;
+    color: black;
+    font-weight: bold;
 }

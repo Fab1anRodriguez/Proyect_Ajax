@@ -1,12 +1,9 @@
 <?php
     session_start();
     require_once('../conex/conex.php');
-    include 'mapas.php';
-    // include '../mapas/avatars.php';
-    
+	// include 'mapas.php';
     $conex = new Database;
     $con = $conex->conectar();
-    // <?php echo $u['avatar'];
 ?>
 
 <?php
@@ -15,6 +12,8 @@
     INNER JOIN estado ON usuario.ID_estado = estado.ID_estado INNER JOIN avatar ON usuario.ID_avatar = avatar.ID_avatar WHERE usuario.ID_usuario = '$id_usuario'");
     $sql -> execute();
     $u = $sql -> fetch();
+	// $nivel_usuario = $users['nivel'];
+
 ?>
 
 <!DOCTYPE html>
@@ -22,61 +21,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../styles/styles_jugador/inicio.css">
+    <link rel="stylesheet" href="../styles/inicio.css">
     <title>Document</title>
-	<link rel="stylesheet" href="../styles/styles_jugador/inicio.css">
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
 <body>
     <header class="container-header">
 		<div class="container-info-user">
-			<label for=" " class="user"><?php echo $u['username'] ?></label>
+			<label for="user" class="user"><?php echo $u['username'] ?></label>
 		</div>
         
 		<div class='container-sesion'>
-			<button>CERRAR SESIÓN</button>
-		</div>
+            <form action="../include/logout.php" method="POST">
+                <button type="submit">CERRAR SESIÓN</button>
+            </form>
+        </div>
     </header>
 
 	<main class='container-main'>
 		<div class='container-content'>
 			<div class='container-menu'>
 				<a href="avatars.php"><i class="bi bi-bag-fill"></i> AVATAR</a>
-				<!-- <button class='avatar' onclick='mostrarAvatars()'></button> -->
 			</div>
 
 			<div class='container-avatares'>
 				<img src="../img/avatares/<?php echo $u['imagen'] ?>" alt="">
 			</div>
 
-			<div class='container-buttons'>
-				<button class='button-mapas' onclick='mostrarMapas()'>SELECCIONAR MAPA: <p id="selected-map"><strong>...</strong></p></button>
-				<a href="salas.php?id_select_sala=<?php echo $mapas['ID_mapas']; ?>"><button class='button-iniciar'>INICIAR</button></a>
-			</div>
+			<div class='container-select'>
+                <select name="select-mapas" class='select-mapas' id="select-mapas">
+                    <option value="">SELECCIONAR MAPA:</option>
+                    <?php
+                        $sqlMapas = $con->prepare("SELECT * FROM mapas");
+                        $sqlMapas->execute();
+                        
+                        while ($mapas = $sqlMapas->fetch(PDO::FETCH_ASSOC)) {
+                            echo "<option value='" . $mapas['ID_mapas'] . "'>" . $mapas['mapas'] . "</option>";
+                        }
+                    ?>
+                </select>
+                <div name="container-button" class='container-button' id="container-button">
+                    
+                </div>
+                
+            </div>
+			
 		</div>
 	</main>
 </body>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+       
 <script>
-    function mostrarMapas() {
-      const mapas = document.getElementById('mapas');
+    $(document).ready(function(){
+        $('#select-mapas').val(0);
+        recargarLista();
 
-      	if (mapas.style.display === "none" || mapas.style.display === "") {
-        	mapas.style.display = "block";
-      	} 
-		else {
-        	mapas.style.display = "none";
-      	}
+        $('#select-mapas').change(function(){
+            recargarLista();
+        });
+    })
+    
+    function recargarLista(){
+        $.ajax({
+            type:"GET",
+            url:"mapas.php",
+            data: { 'select-mapas': $('#select-mapas').val() },
+            success:function(r){
+                $('#container-button').html(r);
+            }
+        });
     }
-</script>
-<script>
-	function mostrarAvatars() {
-		const avatar = document.getElementById('avatars');
-
-      	if (avatar.style.display === "none" || avatar.style.display === "") {
-      	  avatar.style.display = "block";
-      	} 
-		else {
-      	  avatar.style.display = "none";
-      	}
-	}
 </script>
 </html>

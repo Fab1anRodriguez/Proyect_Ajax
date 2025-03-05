@@ -2,7 +2,7 @@ body {
     margin: 0;
     padding: 0;
     font-family: Arial, Helvetica, sans-serif;
-    background-image: url(../../img/lobby3.jpg);
+    background-image: url(../img/lobby3.jpg);
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center;
@@ -37,11 +37,17 @@ body {
     height: 40px;
 }
 
-.container-sesion button {
+.container-sesion form {
+    width: 100%;
+    height: 100%;
+}
+
+.container-sesion form button {
     width: 100%;
     height: 100%;
     background-color: #cdcdcd;
     font-weight: bold;
+    cursor: pointer;
 }
 
 .container-main {
@@ -82,22 +88,30 @@ body {
     height: 600px;
 }
 
-.container-content .container-buttons {
+.container-content .container-select {
     width: 95%;
     place-content: end;
 }
 
-.container-buttons button {
+.container-select .select-mapas {
     width: 100%;
     height: 50px;
     color: white;
+    text-align: center;
     font-weight: bold;
-}
-
-.container-buttons .button-mapas {
     background-color: #1c294f;
 }
 
-.container-buttons .button-iniciar {
+.container-button {
+    place-content: center;
+    width: 100%;
+    height: 50px;
+    text-align: center;
+    font-weight: bold;
     background-color: #ffcb46;
+}
+
+.container-button .button-iniciar {
+    text-decoration: none;
+    color: white;
 }

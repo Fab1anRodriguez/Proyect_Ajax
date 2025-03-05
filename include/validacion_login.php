@@ -31,22 +31,12 @@ $con = $conex->conectar();
                 $_SESSION['avatar'] = $u['ID_avatar'];
                 $_SESSION['estado'] = $u['ID_estado'];
 
-                // print_r($_SESSION);
-
-                
-    
                 if ($_SESSION['rol'] == 1) {
                     header("Location: ../admin/inicio.php");
                 }
     
                 if ($_SESSION['rol'] == 2) {
                     header("Location: ../jugador/inicio.php");
-                    // return $_SESSION = [
-                    //     'id_jugador' => $u['ID_usuario'],
-                    //     'username' => $u['username'],
-                    //     'rol' => $u['ID_rol'],
-                    //     'estate' => $u['ID_estado']
-                    // ];
                 }
 
                 if ($_SESSION['estado'] == 2) {

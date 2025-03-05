@@ -6,16 +6,6 @@
 ?>
 
 <?php
-    if (isset($_GET['seleccionar'])) {
-        $id_usuario = $_SESSION['id_usuario'];
-        $id_avatar = $_GET['id_avatar'];
-        $sqlUpdateAvatar = $con -> prepare("UPDATE usuario SET ID_avatar = '$id_avatar' WHERE ID_usuario = '$id_usuario'");
-        $sqlUpdateAvatar -> execute();
-        $UpdateAvatar = $sqlUpdateAvatar -> fetch();
-    }
-?>
-
-<?php
     $sqlavatars = $con->prepare("SELECT * FROM avatar");
     $sqlavatars->execute();
     $a = $sqlavatars->fetchAll(PDO::FETCH_ASSOC);
@@ -40,40 +30,40 @@
 
                     while($avatars = $sqlavatars -> fetch(PDO::FETCH_ASSOC)){
                         echo "<div class='container-img-avatars'>" .
-                            "<img src='../img/avatares/" . $avatars["imagen"] . "' alt=''>" . 
-                            "<div class='container-name-avatars'>" .
-                                "<input type='submit' name='id_img' id='id_img' value='" . $avatars['ID_avatar'] . "'>" .
-                                "<p>" . $avatars['avatar'] . "</p>" .
-                            "</div>" .
+                            "<img src='../img/avatares/" . $avatars['imagen'] . "' alt='" . $avatars['avatar'] . "' data-id='" . $avatars['ID_avatar'] . "' class='avatar-select'>" . 
+                                "<div class='container-name-avatars'>" .
+                                    "<p>" . $avatars['avatar'] . "</p>" .
+                                "</div>" .
                             "</div>";
                     }
                 ?>
             </div>
-            <div class='container-select-avatars' name='container-select-avatars' id='container-select-avatars'>
-
+            <div name="container-select-avatars" id="container-select-avatars">
+                <p>H O L A - M U N D O</p>
             </div>
         </div>
     </main>
 </body>
-<script type="text/javascript">
-	$(document).ready(function(){
-		$('#id_img').val(0);
-		recargarLista4();
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 
-		$('#id_img').change(function(){
-			recargarLista4();
-		});
-	})
+<script>
+    $(document).ready(function(){
+        $('.avatar-select').click(function(){
+            let id_avatar = $(this).data('id'); // Obtener el ID del avatar seleccionado
+            let id_usuario = <?php echo $_SESSION['id_usuario']; ?>;
+            actualizarAvatar(id_avatar, id_usuario);
+        });
+    });
 
-	function recargarLista4(){
-		$.ajax({
-			type:"POST",
-			url:"../ajax/avatar_select.php",
-			data:"id_img=" + $('#id_img').val(),
-			success:function(r){
-				$('#container-select-avatars').html(r);
-			}
-		});
-	}
+    function actualizarAvatar(id_avatar, id_usuario){
+        $.ajax({
+            type: "GET",
+            url: "../ajax/avatar_select.php",
+            data: { id_avatar: id_avatar, id_usuario: id_usuario },
+            success: function(response){
+                $('#container-select-avatars').html(response);
+            }
+        });
+    }
 </script>
 </html>
