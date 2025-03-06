@@ -3,7 +3,7 @@
         private $hostname = "localhost";
         private $username = "root";
         private $password = "";
-        private $database = "juegoff";
+        private $database = "juego";
         private $charset =  "utf8mb4";
 
         function conectar()         

@@ -25,14 +25,16 @@
 
         // Verificar si la actualización fue exitosa
         if ($sqlIncrement->rowCount() > 0) {
-            $sqlSala = $con->prepare("SELECT * FROM salas WHERE ID_sala = '$id_sala'");
+            $sqlSala = $con->prepare("SELECT nombre_sala, jugadores FROM salas WHERE ID_sala = :id_sala");
+            $sqlSala->bindParam(':id_sala', $id_sala, PDO::PARAM_INT);
             $sqlSala->execute();
-            $sala = $sqlSala -> fetch();
+            $sala = $sqlSala->fetch();
 
             $sqlPartidas = $con->prepare("SELECT * FROM partidas INNER JOIN usuario ON partidas.ID_usuario = usuario.ID_usuario 
-            INNER JOIN salas ON partidas.ID_sala = salas.ID_sala WHERE salas.ID_sala = '$id_sala'");
+            INNER JOIN salas ON partidas.ID_sala = salas.ID_sala WHERE salas.ID_sala = :id_sala");
+            $sqlPartidas->bindParam(':id_sala', $id_sala, PDO::PARAM_INT);
             $sqlPartidas->execute();
-            $sala_time = $sqlPartidas -> fetchALL();
+            $sala_time = $sqlPartidas->fetchAll();
         } 
 
         // Decrementar el número de usuarios en la sala
@@ -47,11 +49,7 @@
     
             echo '<script>alert("Saliste de la sala")</script>';
             echo '<script>window.location = "inicio.php"</script>';
-        }
-        
-        else {
-            echo "La sala está llena.";
-        }
+        } 
     } 
     
     else {
@@ -60,7 +58,7 @@
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -85,7 +83,37 @@
                     <input type="submit" name="exit" class="exit" value="SALIR">
                 </form>
             </div>
+
+            <div id="container-contador">
+                <p>Esperando a que se unan 5 jugadores...</p>
+            </div>
+            
         </div>
     </main>
+
+    <script>
+        const jugadores = <?php echo $sala['jugadores']; ?>;
+
+        if (jugadores >= 5) {
+            iniciarContador();
+        }
+
+        function iniciarContador() {
+            let tiempo = 10;
+            const contadorElement = document.getElementById('container-contador');
+            const intervalo = setInterval(function() {
+                contadorElement.innerText = tiempo;
+                if (tiempo <= 0) {
+                    clearInterval(intervalo);
+                    redirigirAPartida();
+                }
+                tiempo--;
+            }, 1000);
+        }
+
+        function redirigirAPartida() {
+            window.location.href = "partida/partida.php?id_sala=<?php echo $id_sala; ?>";
+        }
+    </script>
 </body>
 </html>

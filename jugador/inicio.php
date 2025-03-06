@@ -12,8 +12,6 @@
     INNER JOIN estado ON usuario.ID_estado = estado.ID_estado INNER JOIN avatar ON usuario.ID_avatar = avatar.ID_avatar WHERE usuario.ID_usuario = '$id_usuario'");
     $sql -> execute();
     $u = $sql -> fetch();
-	// $nivel_usuario = $users['nivel'];
-
 ?>
 
 <!DOCTYPE html>
