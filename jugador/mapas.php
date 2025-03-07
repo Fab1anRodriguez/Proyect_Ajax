@@ -13,9 +13,7 @@
 
         if ($mapas == 0) {
             echo "<a href='salas.php?id_select_sala=1' class='button-iniciar'>INICIAR</a>";
-        } 
-        
-        else {
+        } else {
             $sqlSala = $con->prepare("SELECT * FROM mapas WHERE ID_mapas = :id_mapas");
             $sqlSala->bindParam(':id_mapas', $id_mapas, PDO::PARAM_INT);
             $sqlSala->execute();

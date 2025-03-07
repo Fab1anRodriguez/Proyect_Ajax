@@ -5,32 +5,7 @@
     $con = $conex->conectar();
 
     if (isset($_GET['id_select_sala'])) {
-        $id_selectsala = $_GET['id_select_sala'];
-        $sqlSalas = $con->prepare("SELECT * FROM salas WHERE ID_mapas = :id_selectsala");
-        $sqlSalas->bindParam(':id_selectsala', $id_selectsala, PDO::PARAM_INT);
-        $sqlSalas->execute();
-        $salas = $sqlSalas->fetchAll(PDO::FETCH_ASSOC);
-
-        // Recorrer cada sala y crear una nueva si hay más de 5 jugadores
-        foreach ($salas as $sala) {
-            if ($sala['jugadores'] >= 5) {
-                $name_sala = $sala['nombre_sala'];
-                $jugadores = 0;
-                $level_sala = $sala['nivel_requerido'];
-                $ID_mapas = $sala['ID_mapas'];
-
-                $sqlNewSala = $con->prepare("INSERT INTO salas (nombre_sala, jugadores, nivel_requerido, ID_mapas) VALUES (:name_sala, :jugadores, :level_sala, :ID_mapas)");
-                $sqlNewSala->bindParam(':name_sala', $name_sala, PDO::PARAM_STR);
-                $sqlNewSala->bindParam(':jugadores', $jugadores, PDO::PARAM_INT);
-                $sqlNewSala->bindParam(':level_sala', $level_sala, PDO::PARAM_INT);
-                $sqlNewSala->bindParam(':ID_mapas', $ID_mapas, PDO::PARAM_INT);
-                $sqlNewSala->execute();
-            }
-        }
-
-        // Volver a mostrar las salas
-        $sqlSalas->execute();
-        $salas = $sqlSalas->fetchAll(PDO::FETCH_ASSOC);
+        $id_select_sala = $_GET['id_select_sala'];
     }
 ?>
 
@@ -47,25 +22,42 @@
     <main class="container-main">
         <div class="container-salas">
             <h3>Seleccione la sala</h3>
-            <div class='container-div-salas'>  
-                <?php foreach ($salas as $sala): ?>
-                    <div class='container-name-salas'>
-                        <h4><?php echo $sala['nombre_sala']; ?></h4>
-                        <div class="container-persons">
-                            <h4><i class="bi bi-person-fill"></i><?php echo $sala['jugadores']; ?>/5</h4>
-                        </div>
-                        
-                        <div class="container-button">
-                            <?php if ($sala['jugadores'] < 5): ?>
-                                <a href="sala_espera.php?id_sala=<?php echo $sala['ID_sala'] ?>"><button>UNIRSE</button></a>
-                            <?php else: ?>
-                                <button disabled class='button-disabled'>LLENO</button>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
+            <div class='container-div-salas'>
             </div>
         </div>
     </main>
 </body>
+<script>
+    function updateSalas() {
+        const xhr = new XMLHttpRequest();
+        const id_select_sala = <?php echo json_encode($id_select_sala); ?>;
+        xhr.open('GET', '../ajax/obtener_salas.php?id_select_sala=' + id_select_sala, true);
+        xhr.onload = function() {
+            if (this.status === 200) {
+                const salas = JSON.parse(this.responseText);
+                let output = ''; 
+                salas.forEach(function(sala) {
+                    output += `
+                        <div class='container-name-salas'>
+                            <h4>${sala.nombre_sala}</h4>
+                            <div class="container-persons">
+                                <h4><i class="bi bi-person-fill"></i>${sala.jugadores}/5</h4>
+                            </div>
+                            <div class="container-button">
+                                ${sala.jugadores < 5 ? `<a href="sala_espera.php?id_sala=${sala.ID_sala}"><button>UNIRSE</button></a>` : `<button disabled class='button-disabled'>LLENO</button>`}
+                            </div>
+                        </div>
+                    `;
+                });
+                document.querySelector('.container-div-salas').innerHTML = output;
+            }
+        }
+        xhr.onerror = function() {
+            console.error('Error en la solicitud'); // Mensaje de depuración
+        }
+        xhr.send();
+    }
+    
+    setInterval(updateSalas, 1000);
+</script>
 </html>

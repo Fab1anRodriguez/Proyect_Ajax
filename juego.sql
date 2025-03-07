@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 06-03-2025 a las 01:43:16
+-- Tiempo de generación: 07-03-2025 a las 04:16:03
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -93,6 +93,19 @@ CREATE TABLE `partidas` (
   `ID_sala` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Volcado de datos para la tabla `partidas`
+--
+
+INSERT INTO `partidas` (`ID_partida`, `fecha_inicio`, `fecha_fin`, `ID_usuario`, `ID_sala`) VALUES
+(1, '2025-03-06 21:31:19', '2025-03-06 21:31:19', 9, 1),
+(2, '2025-03-06 21:31:19', '2025-03-06 21:31:19', 6, 1),
+(3, '2025-03-06 21:31:19', '2025-03-06 21:31:19', 4, 2),
+(4, '2025-03-06 21:31:19', '2025-03-06 21:31:19', 8, 2),
+(5, '2025-03-06 21:31:19', '2025-03-06 21:31:19', 5, 2),
+(6, '2025-03-06 21:31:19', '2025-03-06 21:31:19', 7, 2),
+(7, '2025-03-06 21:31:19', '2025-03-06 21:31:19', 4, 1);
+
 -- --------------------------------------------------------
 
 --
@@ -106,6 +119,17 @@ CREATE TABLE `salas` (
   `nivel_requerido` int(11) NOT NULL,
   `ID_mapas` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `salas`
+--
+
+INSERT INTO `salas` (`ID_sala`, `nombre_sala`, `jugadores`, `nivel_requerido`, `ID_mapas`) VALUES
+(1, 'BR-CLASIFICATORIA', 5, 1, 1),
+(2, 'DE-CLASIFICATORIA', 5, 2, 2),
+(6, 'Sala 2', 5, 0, 2),
+(7, 'Sala 3', 3, 0, 2),
+(8, 'Sala 2', 0, 0, 1);
 
 --
 -- Índices para tablas volcadas
@@ -160,13 +184,13 @@ ALTER TABLE `estadisticas`
 -- AUTO_INCREMENT de la tabla `partidas`
 --
 ALTER TABLE `partidas`
-  MODIFY `ID_partida` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
+  MODIFY `ID_partida` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=62;
 
 --
 -- AUTO_INCREMENT de la tabla `salas`
 --
 ALTER TABLE `salas`
-  MODIFY `ID_sala` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `ID_sala` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- Restricciones para tablas volcadas

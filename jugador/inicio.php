@@ -7,11 +7,17 @@
 ?>
 
 <?php
-    $id_usuario = $_SESSION['id_usuario'];
-    $sql = $con -> prepare("SELECT * FROM usuario INNER JOIN roles ON usuario.ID_rol = roles.ID_rol
-    INNER JOIN estado ON usuario.ID_estado = estado.ID_estado INNER JOIN avatar ON usuario.ID_avatar = avatar.ID_avatar WHERE usuario.ID_usuario = '$id_usuario'");
-    $sql -> execute();
-    $u = $sql -> fetch();
+    if (isset($_SESSION['id_usuario'])) {
+        $id_usuario = $_SESSION['id_usuario'];
+        $sql = $con -> prepare("SELECT * FROM usuario INNER JOIN roles ON usuario.ID_rol = roles.ID_rol
+        INNER JOIN estado ON usuario.ID_estado = estado.ID_estado INNER JOIN avatar ON usuario.ID_avatar = avatar.ID_avatar WHERE usuario.ID_usuario = '$id_usuario'");
+        $sql -> execute();
+        $u = $sql -> fetch();
+    }
+    else {
+        echo '<script>alert("Debes iniciar sesión para acceder a esta página")</script>';
+        echo '<script>window.location = "../index.html"</script>';
+    }
 ?>
 
 <!DOCTYPE html>
@@ -68,7 +74,7 @@
 	</main>
 </body>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-       
+
 <script>
     $(document).ready(function(){
         $('#select-mapas').val(0);
@@ -77,17 +83,20 @@
         $('#select-mapas').change(function(){
             recargarLista();
         });
-    })
+
+        setInterval(recargarLista, 1000);
+    });
     
     function recargarLista(){
         $.ajax({
-            type:"GET",
-            url:"mapas.php",
+            type: "GET",
+            url: "mapas.php",
             data: { 'select-mapas': $('#select-mapas').val() },
-            success:function(r){
+            success: function(r){
                 $('#container-button').html(r);
             }
         });
     }
 </script>
+
 </html>
