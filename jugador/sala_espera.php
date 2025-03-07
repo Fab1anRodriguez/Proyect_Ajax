@@ -43,9 +43,9 @@
             $sqlDecrement->bindParam(':id_usuario', $id_usuario, PDO::PARAM_INT);
             $sqlDecrement->execute();
 
-            $sqlDecrement2 = $con->prepare("UPDATE salas SET jugadores = jugadores - 1 WHERE ID_sala = :id_sala");
-            $sqlDecrement2->bindParam(':id_sala', $id_sala, PDO::PARAM_INT);
-            $sqlDecrement2->execute();
+            $sqlIncrement = $con->prepare("UPDATE salas SET jugadores = jugadores - 1 WHERE ID_sala = :id_sala");
+            $sqlIncrement->bindParam(':id_sala', $id_sala, PDO::PARAM_INT);
+            $sqlIncrement->execute();
     
             echo '<script>alert("Saliste de la sala")</script>';
             echo '<script>window.location = "inicio.php"</script>';
@@ -115,7 +115,7 @@
     setInterval(updateSala, 1000);
 
     function iniciarContador() {
-        let tiempo = 15;
+        let tiempo = 10;
         const contadorElement = document.getElementById('container-contador');
         const intervalo = setInterval(function() {
             contadorElement.innerText = tiempo;

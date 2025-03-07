@@ -115,3 +115,24 @@ body {
     text-decoration: none;
     color: white;
 }
+
+@media screen and (max-width: 768px) {
+    .container-header {
+        width: 100%;
+    }
+
+    .container-header .container-info-user {
+        width: 100%;
+    }
+
+    .container-info-user label {
+        width: 100%;
+    }
+
+    .container-main .container-content {
+        width: 100%;
+        height: 100%;
+        display: grid;
+        grid-template-columns: repeat(1, 1fr);
+    }
+}
