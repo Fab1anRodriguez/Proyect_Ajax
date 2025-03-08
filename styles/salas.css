@@ -67,3 +67,30 @@ body {
     height: 40px;
     background-color: #cdcdcd;
 }
+
+/* ------------------- */
+
+@media (min-width: 320px) {
+    body {
+        width: 100%;
+        height: 100%;
+    }
+    .container-main {
+        width: 100%;
+        height: 100%;
+    }
+    .container-main .container-salas {
+        width: 90%;
+        height: 100%;
+    }
+    .container-salas .container-div-salas {
+        width: 90%;
+        height: 815px;
+    }
+    .container-div-salas .container-name-salas {
+        width: 100%;
+        height: auto;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
