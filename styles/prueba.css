@@ -59,29 +59,29 @@ body {
 
 .container-header {
     width: 100%;
-    position: absolute;
+    position: fixed;
+    columns: 0;
+    gap: 71%;
 }
 
 .container-header .container-info-user {
-    background: #cdcdcd;
+    place-content: center;
+    align-content: center;
     text-align: center;
+    background-color: #cdcdcd;
+    font-weight: bold;
     width: 200px;
     height: 40px;
-    position: absolute;
-    left: 0%;
 }
 
-.container-info-user .user {
-    display: block;
-    font-weight: bold;
+.container-info-user label {
     width: 100%;
+    height: 100%;
 }
 
 .container-header .container-sesion {
     width: 200px;
     height: 40px;
-    position: absolute;
-    right: 0%;
 }
 
 .container-sesion form {
@@ -92,81 +92,61 @@ body {
 .container-sesion form button {
     width: 100%;
     height: 100%;
-    border: none;
-    cursor: pointer;
+    background-color: #cdcdcd;
     font-weight: bold;
+    cursor: pointer;
 }
 
 .container-main {
     width: 100%;
-    height: 100%;
 }
 
 .container-main .container-content {
     width: 100%;
     height: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
 }
 
 .container-content .container-menu {
-    position: absolute;
-    top: 50%;
-    width: 200px;
-    height: 40px;
-    align-content: center;
-    text-align: center;
-    background: black;
-    align-content: center;
+    width: 100%;
 }
 
 .container-menu a {
-    font-weight: bold;
-    color: white;
-    text-decoration: none;
-    width: 100%;
-    height: 100%;
     display: block;
+    width: 200px;
+    height: 50px;
+    color: white;
+    background-color: black;
+    text-align: center;
     align-content: center;
+    font-weight: bold;
+    text-decoration: none;
+    position: relative;
+    top: 50%;
 }
 
 .container-content .container-avatares {
-    width: 500px;
-    height: 600px;
-    position: absolute;
-    left: 30%;
+    width: 100%;
 }
 
 .container-avatares img {
+    width: 400px;
+    height: 600px;
+}
+
+.container-select {
     width: 100%;
     height: 100%;
+    position: fixed;
+    place-content: center;
+    place-items: center;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
 }
 
-.container-content .container-select {
-    position: absolute;
-    right: 0%;
-    top: 82%;
-    width: 300px;
-    height: 50px;
-    /* place-content: center;
-    place-items: center; */
-}
-
-.container-select #btnSeleccionarMapa {
-    width: 100%;
-    height: 100%;
-    border: none;
-    cursor: pointer;
-    font-weight: bold;
-    color: white;
-    background-color: #1c294f;
-}
-
-.container-select .container-columns-mapas {
-    width: 1000px;
-    columns: 2;
-}
-
-.container-columns-mapas .container-img-mapas {
-    width: 100%;
+.container-select .container-img-mapas {
+    width: 600px;
     height: 400px;
     position: relative;
 }
@@ -178,80 +158,75 @@ body {
 }
 
 .container-img-mapas .container-name-mapas {
-    width: 100%;
-    height: 60px;
     position: absolute;
-    place-items: center;
-    background-color: #ffcb46;
-    color: #000;
-    top: 75%;
+    top: 0%;
+    left: 0%;
+    width: 100%;
+    height: 100%;
+    background: none;
+    color: white;
+    display: none;
+    justify-content: center;
+    align-items: center;
     font-size: 20px;
     pointer-events: none;
 }
 
-.container-button {
-    position: absolute;
-    right: 0%;
-    top: 90%;
-    width: 300px;
-    height: 50px;
-    background-color: #666563;
-}
-
-.container-button button {
-    width: 100%;
-    height: 100%;
-    border: none;
+.container-img-mapas:hover .container-name-mapas {
+    background-color: rgba(0, 0, 0, 0.5);
+    transition: opacity 0.3s ease;
+    display: flex;
     cursor: pointer;
-    font-weight: bold;
+    pointer-events: none;
 }
 
-/* ---------------------- */
+.container-button {
+    place-content: center;
+    width: 100%;
+    height: 50px;
+    text-align: center;
+    font-weight: bold;
+    background-color: #ffcb46;
+}
+
+.container-button .button-iniciar {
+    text-decoration: none;
+    color: white;
+}
 
 @media (max-width: 768px) {
-    body {
-        background-image: url(../img/lobby3.jpg);
-        width: 100%;
-        height: 100vh;
-    }
     .container-header {
         width: 100%;
+        gap: 0%;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
     }
-    .container-main {
+    .container-header .container-info-user {
         width: 100%;
-        height: 100%;
     }
+    .container-header .container-sesion {
+        width: 100%;
+    }
+    
     .container-main .container-content {
         width: 100%;
         height: 100%;
-    }
-    .container-content .container-avatares {
-        width: 100%;
-        top: 10%;
-        left: 0%;
-        height: 700px;
-    }
-    .container-select .container-columns-mapas {
-        width: 100%;
-        columns: 1;
+        display: grid;
+        grid-template-columns: repeat(1, 1fr);
     }
     .container-content .container-menu {
         position: absolute;
-        top: 83%;
-        width: 200px;
-        height: 40px;
-        z-index: 1;
+        top: 84%;
+        width: 100%;
+    }
+    .container-content .container-avatares {
+        width: 100%;
+        position: absolute;
+        top: 20%;
     }
     .container-content .container-select {
         position: absolute;
-        top: 88%;
+        top: 89%;
         width: 100%;
-        height: 50px;
-    }
-    .container-button {
-        position: absolute;
-        top: 94%;
-        width: 100%;
-        height: 50px;
-    }
+    }   
 }

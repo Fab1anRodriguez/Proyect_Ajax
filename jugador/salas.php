@@ -20,6 +20,10 @@
 </head>
 <body>
     <main class="container-main">
+        <a href="inicio.php" class="back-button">
+            <i class="bi bi-arrow-left-circle-fill"></i>
+        </a>
+
         <div class="container-salas">
             <h3>Seleccione la sala</h3>
             <div class='container-div-salas'>

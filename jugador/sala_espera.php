@@ -10,33 +10,26 @@
         $time_start = date('Y-m-d H:i:s');
         $time_end = '0000-00-00 00:00:00';
 
-        // Incrementar el número de usuarios en la sala
-        $sqlIncrement = $con->prepare("UPDATE salas SET jugadores = jugadores + 1 WHERE ID_sala = :id_sala AND jugadores < 5");
-        $sqlIncrement->bindParam(':id_sala', $id_sala, PDO::PARAM_INT);
-        $sqlIncrement->execute();
+        // Verificar si el usuario ya está en la sala
+        $sqlCheck = $con->prepare("SELECT * FROM partidas WHERE ID_usuario = :id_usuario AND ID_sala = :id_sala");
+        $sqlCheck->bindParam(':id_usuario', $id_usuario, PDO::PARAM_INT);
+        $sqlCheck->bindParam(':id_sala', $id_sala, PDO::PARAM_INT);
+        $sqlCheck->execute();
 
-        // Insertar datos de la tabla partidas
-        $sqlInsertar = $con->prepare("INSERT INTO partidas (fecha_inicio, fecha_fin, ID_usuario, ID_sala) VALUES (:fecha_inicio, :fecha_fin, :id_usuario, :id_sala)");
-        $sqlInsertar->bindParam(':id_usuario', $id_usuario, PDO::PARAM_INT);
-        $sqlInsertar->bindParam(':id_sala', $id_sala, PDO::PARAM_INT);
-        $sqlInsertar->bindParam('fecha_inicio', $time_start, PDO::PARAM_STR);
-        $sqlInsertar->bindParam('fecha_fin', $time_end, PDO::PARAM_STR);
-        $sqlInsertar->execute();
+        if ($sqlCheck->rowCount() == 0) {
+            // Incrementar el número de usuarios en la sala
+            $sqlIncrement = $con->prepare("UPDATE salas SET jugadores = jugadores + 1 WHERE ID_sala = :id_sala AND jugadores < 5");
+            $sqlIncrement->bindParam(':id_sala', $id_sala, PDO::PARAM_INT);
+            $sqlIncrement->execute();
 
-        // Verificar si la actualización fue exitosa
-        if ($sqlIncrement->rowCount() > 0) {
-            $sqlSala = $con->prepare("SELECT * FROM salas WHERE ID_sala = :id_sala");
-            $sqlSala->bindParam(':id_sala', $id_sala, PDO::PARAM_INT);
-            $sqlSala->execute();
-            $sala = $sqlSala->fetch();
-
-            $sqlPartidas = $con->prepare("SELECT * FROM partidas INNER JOIN usuario ON partidas.ID_usuario = usuario.ID_usuario 
-            INNER JOIN salas ON partidas.ID_sala = salas.ID_sala WHERE salas.ID_sala = :id_sala");
-            $sqlPartidas->bindParam(':id_sala', $id_sala, PDO::PARAM_INT);
-            $sqlPartidas->execute();
-            $sala_time = $sqlPartidas->fetchAll();
-        } 
-
+            // Insertar datos de la tabla partidas
+            $sqlInsertar = $con->prepare("INSERT INTO partidas (fecha_inicio, fecha_fin, ID_usuario, ID_sala) VALUES (:fecha_inicio, :fecha_fin, :id_usuario, :id_sala)");
+            $sqlInsertar->bindParam(':id_usuario', $id_usuario, PDO::PARAM_INT);
+            $sqlInsertar->bindParam(':id_sala', $id_sala, PDO::PARAM_INT);
+            $sqlInsertar->bindParam('fecha_inicio', $time_start, PDO::PARAM_STR);
+            $sqlInsertar->bindParam('fecha_fin', $time_end, PDO::PARAM_STR);
+            $sqlInsertar->execute();
+        }
         // Decrementar el número de usuarios en la sala
         if (isset($_GET['exit'])) {
             $sqlDecrement = $con->prepare("DELETE FROM partidas WHERE ID_usuario = :id_usuario");
@@ -67,10 +60,25 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
 <body>
+    <?php
+        $sqlSala = $con->prepare("SELECT * FROM salas WHERE ID_sala = :id_sala");
+        $sqlSala->bindParam(':id_sala', $id_sala, PDO::PARAM_INT);
+        $sqlSala->execute();
+        $sala = $sqlSala->fetch();
+
+        $sqlPartidas = $con->prepare("SELECT * FROM partidas INNER JOIN usuario ON partidas.ID_usuario = usuario.ID_usuario 
+        INNER JOIN salas ON partidas.ID_sala = salas.ID_sala WHERE salas.ID_sala = :id_sala");
+        $sqlPartidas->bindParam(':id_sala', $id_sala, PDO::PARAM_INT);
+        $sqlPartidas->execute();
+        $sala_time = $sqlPartidas->fetchAll();
+    ?>
+
     <main class="container-main">
         <div class="container-salas">
             <h3><?php echo $sala['nombre_sala']; ?></h3>
+            
             <div class='container-div-salas'>
+            
             </div>
 
             <div class='container-button'>

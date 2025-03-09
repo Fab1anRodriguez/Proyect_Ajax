@@ -1,3 +1,30 @@
+<div class='container-select'>
+                <select name="select-mapas" class='select-mapas' id="select-mapas">
+                    <option value="">SELECCIONAR MAPA:</option>
+                    <?php
+                        $sqlMapas = $con->prepare("SELECT * FROM mapas");
+                        $sqlMapas->execute();
+                        
+                        while ($mapas = $sqlMapas->fetch(PDO::FETCH_ASSOC)) {
+                            echo "<option value='" . $mapas['ID_mapas'] . "'>" . $mapas['mapas'] . "</option>";
+                        }
+                    ?>
+                </select>
+                <div name="container-button" class='container-button' id="container-button">
+                    
+                </div>
+                
+            </div>
+
+
+
+
+
+
+
+
+
+
 <?php
 require_once('../../conex/conex.php');
 $conex = new Database;

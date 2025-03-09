@@ -18,9 +18,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <link rel="stylesheet" href="../styles/avatars.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
 <body>
     <main class="container-main-avatars" id="avatars">
+        <a href="inicio.php" class="back-button">
+            <i class="bi bi-arrow-left-circle-fill"></i>
+        </a>
+
         <div class="container-div-avatars">
             <h3>Seleccione el Avatar</h3>
             <div class='container-columns-avatars'>
