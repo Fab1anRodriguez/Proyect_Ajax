@@ -1,7 +1,7 @@
 <?php
 
 require_once('../conex/conex.php');
-$conex =new Database;
+$conex = new Database;
 $con = $conex->conectar();
 
 ?>
@@ -19,8 +19,8 @@ $con = $conex->conectar();
         
         else {
             $password_descr = htmlentities(addslashes($password));
-            $sqlUser = $con->prepare("SELECT * FROM usuario WHERE username = '$username'");
-            $sqlUser->execute();
+            $sqlUser = $con->prepare("SELECT * FROM usuario WHERE username = ?");
+            $sqlUser->execute([$username]);
             $u = $sqlUser->fetch();
     
             if ($u && password_verify($password_descr, $u["password"]) && ($u["ID_estado"] == 1)) {
@@ -28,11 +28,10 @@ $con = $conex->conectar();
                 $_SESSION['id_usuario'] = $u['ID_usuario'];
                 $_SESSION['username'] = $u['username'];
                 $_SESSION['rol'] = $u['ID_rol'];
-                $_SESSION['avatar'] = $u['ID_avatar'];
                 $_SESSION['estado'] = $u['ID_estado'];
 
                 if ($_SESSION['rol'] == 1) {
-                    header("Location: ../admin/inicio.php");
+                    header("Location: ../admi/admi.php");
                 }
     
                 if ($_SESSION['rol'] == 2) {

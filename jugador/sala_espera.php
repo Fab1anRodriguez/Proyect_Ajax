@@ -1,6 +1,7 @@
 <?php
     session_start();
     require_once('../conex/conex.php');
+    require_once('../include/time.php');
     $conex = new Database;
     $con = $conex->conectar();
 
@@ -11,40 +12,30 @@
         $time_end = '0000-00-00 00:00:00';
 
         // Verificar si el usuario ya está en la sala
-        $sqlCheck = $con->prepare("SELECT * FROM partidas WHERE ID_usuario = :id_usuario AND ID_sala = :id_sala");
-        $sqlCheck->bindParam(':id_usuario', $id_usuario, PDO::PARAM_INT);
-        $sqlCheck->bindParam(':id_sala', $id_sala, PDO::PARAM_INT);
-        $sqlCheck->execute();
+        $sqlCheck = $con->prepare("SELECT * FROM partidas WHERE ID_usuario = ? AND ID_sala = ?");
+        $sqlCheck->execute([$id_usuario, $id_sala]);
 
         if ($sqlCheck->rowCount() == 0) {
             // Incrementar el número de usuarios en la sala
-            $sqlIncrement = $con->prepare("UPDATE salas SET jugadores = jugadores + 1 WHERE ID_sala = :id_sala AND jugadores < 5");
-            $sqlIncrement->bindParam(':id_sala', $id_sala, PDO::PARAM_INT);
-            $sqlIncrement->execute();
+            $sqlIncrement = $con->prepare("UPDATE salas SET jugadores = jugadores + 1 WHERE ID_sala = ? AND jugadores < 5");
+            $sqlIncrement->execute([$id_sala]);
 
             // Insertar datos de la tabla partidas
-            $sqlInsertar = $con->prepare("INSERT INTO partidas (fecha_inicio, fecha_fin, ID_usuario, ID_sala) VALUES (:fecha_inicio, :fecha_fin, :id_usuario, :id_sala)");
-            $sqlInsertar->bindParam(':id_usuario', $id_usuario, PDO::PARAM_INT);
-            $sqlInsertar->bindParam(':id_sala', $id_sala, PDO::PARAM_INT);
-            $sqlInsertar->bindParam('fecha_inicio', $time_start, PDO::PARAM_STR);
-            $sqlInsertar->bindParam('fecha_fin', $time_end, PDO::PARAM_STR);
-            $sqlInsertar->execute();
+            $sqlInsertar = $con->prepare("INSERT INTO partidas (fecha_inicio, fecha_fin, ID_usuario, ID_sala) VALUES (?, ?, ?, ?)");
+            $sqlInsertar->execute([$time_start, $time_end, $id_usuario, $id_sala]);
         }
         // Decrementar el número de usuarios en la sala
         if (isset($_GET['exit'])) {
-            $sqlDecrement = $con->prepare("DELETE FROM partidas WHERE ID_usuario = :id_usuario");
-            $sqlDecrement->bindParam(':id_usuario', $id_usuario, PDO::PARAM_INT);
-            $sqlDecrement->execute();
+            $sqlDecrement = $con->prepare("DELETE FROM partidas WHERE ID_usuario = ?");
+            $sqlDecrement->execute([$id_usuario]);
 
-            $sqlIncrement = $con->prepare("UPDATE salas SET jugadores = jugadores - 1 WHERE ID_sala = :id_sala");
-            $sqlIncrement->bindParam(':id_sala', $id_sala, PDO::PARAM_INT);
-            $sqlIncrement->execute();
-    
+            $sqlIncrement = $con->prepare("UPDATE salas SET jugadores = jugadores - 1 WHERE ID_sala = ?");
+            $sqlIncrement->execute([$id_sala]);
+
             echo '<script>alert("Saliste de la sala")</script>';
             echo '<script>window.location = "inicio.php"</script>';
         } 
     } 
-    
     else {
         echo "ID de sala no Incorrecto.";
     } 
@@ -61,15 +52,13 @@
 </head>
 <body>
     <?php
-        $sqlSala = $con->prepare("SELECT * FROM salas WHERE ID_sala = :id_sala");
-        $sqlSala->bindParam(':id_sala', $id_sala, PDO::PARAM_INT);
-        $sqlSala->execute();
+        $sqlSala = $con->prepare("SELECT * FROM salas WHERE ID_sala = ?");
+        $sqlSala->execute([$id_sala]);
         $sala = $sqlSala->fetch();
 
         $sqlPartidas = $con->prepare("SELECT * FROM partidas INNER JOIN usuario ON partidas.ID_usuario = usuario.ID_usuario 
-        INNER JOIN salas ON partidas.ID_sala = salas.ID_sala WHERE salas.ID_sala = :id_sala");
-        $sqlPartidas->bindParam(':id_sala', $id_sala, PDO::PARAM_INT);
-        $sqlPartidas->execute();
+        INNER JOIN salas ON partidas.ID_sala = salas.ID_sala WHERE salas.ID_sala = ?");
+        $sqlPartidas->execute([$id_sala]);
         $sala_time = $sqlPartidas->fetchAll();
     ?>
 

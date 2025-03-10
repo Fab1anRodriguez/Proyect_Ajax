@@ -1,6 +1,7 @@
 <?php
     session_start();
     require_once('../conex/conex.php');
+    require_once('../include/time.php');
     $conex = new Database;
     $con = $conex->conectar();
 ?>
@@ -43,9 +44,6 @@
                     }
                 ?>
             </div>
-            <div name="container-select-avatars" id="container-select-avatars">
-                <p>H O L A - M U N D O</p>
-            </div>
         </div>
     </main>
 </body>
@@ -60,13 +58,20 @@
         });
     });
 
-    function actualizarAvatar(id_avatar, id_usuario){
+    function actualizarAvatar(id_avatar, id_usuario) {
         $.ajax({
-            type: "GET",
-            url: "../ajax/avatar_select.php",
-            data: { id_avatar: id_avatar, id_usuario: id_usuario },
-            success: function(response){
-                $('#container-select-avatars').html(response);
+            url: '../ajax/avatar_select.php',
+            type: 'GET',
+            data: {
+                id_avatar: id_avatar,
+                id_usuario: id_usuario
+            },
+            success: function(response) {
+                alert('Avatar actualizado');
+                window.location.href = 'inicio.php';
+            },
+            error: function() {
+                alert('Error al actualizar el avatar');
             }
         });
     }

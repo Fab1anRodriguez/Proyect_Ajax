@@ -1,7 +1,7 @@
 <?php
 
 require_once('../conex/conex.php');
-$conex =new Database;
+$conex = new Database;
 $con = $conex->conectar();
 session_start();
 $estado = 2;
@@ -13,7 +13,6 @@ $level = 1;
 ?>
 
 <?php 
-
     if (isset($_POST['registrarse'])){
         $username = $_POST['username'];
         $email = $_POST['email'];
@@ -28,11 +27,10 @@ $level = 1;
         
         else {
             $insertUsers = $con->prepare("INSERT INTO usuario (username, email, password, Puntos, ID_rol, ID_estado, ID_avatar, nivel) 
-            VALUES ('$username', '$email', '$password_enc', '$points', '$type_user', '$estado', '$avatar', '$level')");
-            $insertUsers->execute();
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+            $insertUsers->execute([$username, $email, $password_enc, $points, $type_user, $estado, $avatar, $level]);
             echo '<script>alert("Usuario Registrado")</script>';
             echo '<script>window.location = "../login.html"</script>';
         }
     }
-
 ?>

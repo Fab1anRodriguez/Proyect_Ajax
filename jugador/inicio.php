@@ -1,6 +1,7 @@
 <?php
     session_start();
     require_once('../conex/conex.php');
+    require_once('../include/time.php');
     $conex = new Database;
     $con = $conex->conectar();
 ?>
@@ -8,14 +9,14 @@
 <?php
     if (isset($_SESSION['id_usuario'])) {
         $id_usuario = $_SESSION['id_usuario'];
-        $sql = $con -> prepare("SELECT * FROM usuario INNER JOIN roles ON usuario.ID_rol = roles.ID_rol
-        INNER JOIN estado ON usuario.ID_estado = estado.ID_estado INNER JOIN avatar ON usuario.ID_avatar = avatar.ID_avatar WHERE usuario.ID_usuario = '$id_usuario'");
-        $sql -> execute();
-        $u = $sql -> fetch();
+        $sql = $con->prepare("SELECT * FROM usuario INNER JOIN roles ON usuario.ID_rol = roles.ID_rol
+        INNER JOIN estado ON usuario.ID_estado = estado.ID_estado INNER JOIN avatar ON usuario.ID_avatar = avatar.ID_avatar WHERE usuario.ID_usuario = ?");
+        $sql->execute([$id_usuario]);
+        $u = $sql->fetch();
 
         if ($u['Puntos'] >= 500 && $u['nivel'] < 2) {
-            $updateNivel = $con->prepare("UPDATE usuario SET nivel = 2 WHERE ID_usuario = '$id_usuario'");
-            $updateNivel->execute();
+            $updateNivel = $con->prepare("UPDATE usuario SET nivel = 2 WHERE ID_usuario = ?");
+            $updateNivel->execute([$id_usuario]);
         }
     }
     else {
@@ -31,41 +32,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../styles/inicio.css">
     <title>Document</title>
-	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
 <body>
     <div id="userStatsModal" class="modal">
         <div class="modal-content">
             <span class="close"><i class="bi bi-x-circle-fill"></i></span>
             <h2>Estadísticas de <?php echo $u['username'] ?></h2>
-        <div id="userStatsContent"></div>
-        
+            <div id="userStatsContent">
+                
+            </div>
         </div>
     </div>
 
     <header class="container-header">
-		<div class="container-info-user">
-			<label for="user" class="user" id="user"><?php echo $u['username']; ?><br><?php echo "Puntos: " . $u['Puntos'] . " - Nivel: " . $u['nivel']; ?></label>
-		</div>
+        <div class="container-info-user">
+            <label for="user" class="user" id="user"><?php echo $u['username']; ?><br><?php echo "Puntos: " . $u['Puntos'] . " - Nivel: " . $u['nivel']; ?></label>
+        </div>
         
-		<div class='container-sesion'>
+        <div class='container-sesion'>
             <form action="../include/logout.php" method="POST">
                 <button type="submit">CERRAR SESIÓN</button>
             </form>
         </div>
     </header>
 
-	<main class='container-main'>
-		<div class='container-content'>
-			<div class='container-menu'>
-				<a href="avatars.php"><i class="bi bi-bag-fill"></i> AVATAR</a>
-			</div>
+    <main class='container-main'>
+        <div class='container-content'>
+            <div class='container-menu'>
+                <a href="avatars.php"><i class="bi bi-bag-fill"></i> AVATAR</a>
+            </div>
 
-			<div class='container-avatares'>
-				<img src="../img/avatares/<?php echo $u['imagen'] ?>" alt="">
-			</div>
+            <div class='container-avatares'>
+                <img src="../img/avatares/<?php echo $u['imagen'] ?>" alt="">
+            </div>
 
-			<div class='container-select'>
+            <div class='container-select'>
                 <button id="btnSeleccionarMapa">SELECCIONAR MAPA</button>
                 <div id="mapasModal" class="modal">
                     <div class="modal-content">
@@ -75,7 +77,7 @@
                             $sqlMapas = $con->prepare("SELECT * FROM mapas");
                             $sqlMapas->execute();
                             
-                            while($mapa = $sqlMapas -> fetch(PDO::FETCH_ASSOC)){
+                            while($mapa = $sqlMapas->fetch(PDO::FETCH_ASSOC)){
                                 $nivel_requerido = $mapa['nivel_requerido'];
                                 if ($u['nivel'] < $nivel_requerido) {
                                     echo "<div class='container-img-mapas'>" .
@@ -105,9 +107,9 @@
             <div class="container-button">
                 <button id="iniciarJuego" disabled>INICIAR</button>
             </div>
-			
-		</div>
-	</main>
+            
+        </div>
+    </main>
 </body>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 

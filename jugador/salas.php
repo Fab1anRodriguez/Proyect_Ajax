@@ -1,6 +1,7 @@
 <?php
     session_start();
     require_once('../conex/conex.php');
+    require_once('../include/time.php');
     $conex = new Database;
     $con = $conex->conectar();
 
@@ -32,13 +33,12 @@
     </main>
 </body>
 <script>
-    function updateSalas() {
-        const xhr = new XMLHttpRequest();
-        const id_select_sala = <?php echo json_encode($id_select_sala); ?>;
-        xhr.open('GET', '../ajax/obtener_salas.php?id_select_sala=' + id_select_sala, true);
-        xhr.onload = function() {
-            if (this.status === 200) {
-                const salas = JSON.parse(this.responseText);
+    async function updateSalas() {
+        try {
+            const id_select_sala = <?php echo json_encode($id_select_sala); ?>;
+            const response = await fetch(`../ajax/obtener_salas.php?id_select_sala=${id_select_sala}`);
+            if (response.ok) {
+                const salas = await response.json();
                 let output = ''; 
                 salas.forEach(function(sala) {
                     output += `
@@ -54,12 +54,12 @@
                     `;
                 });
                 document.querySelector('.container-div-salas').innerHTML = output;
+            } else {
+                console.error('Error en la respuesta del servidor');
             }
+        } catch (error) {
+            console.error('Error en la solicitud', error);
         }
-        xhr.onerror = function() {
-            console.error('Error en la solicitud'); // Mensaje de depuración
-        }
-        xhr.send();
     }
     
     setInterval(updateSalas, 1000);
