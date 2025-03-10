@@ -40,9 +40,10 @@ $ruta_avatares = "../../img/avatares/"; //creamos una variable para guardar la r
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>Partida en Curso</h1>
-        </header>
+    <header>
+        <h1>Partida en Curso</h1>
+        <div id="container-contador">30</div>
+    </header>
 
         <main>
             <!-- mostrar jugador actual -->
@@ -459,50 +460,32 @@ $ruta_avatares = "../../img/avatares/"; //creamos una variable para guardar la r
             });
         }
         
-        //// iniciar el contador de 5 minutos
-        //function iniciarContador() {
-        //    let tiempo = 300; // 5 minutos en segundos (300 seg)
-        //    const contadorElement = document.getElementById('container-contador'); // selecciona el elemento del contador en el DOM
-        //    const intervalo = setInterval(function() { // establece un intervalo que se ejecuta cada segundo
-        //        const minutos = Math.floor(tiempo / 60); // calcula los minutos restantes
-        //        const segundos = tiempo % 60; // calcula los segundos restantes
-        //        // actualiza el texto del contador con el formato mm:ss
-        //        contadorElement.innerText = `${minutos}:${segundos < 10 ? '0' : ''}${segundos}`;
-        //        if (tiempo <= 0) { // si el tiempo llega a 0
-        //            clearInterval(intervalo); // detiene el intervalo
-        //            finalizarPartida(); // llama a la funcion para finalizar la partida
-        //        }
-        //        tiempo--; // decrementa el tiempo en 1 segundo
-        //    }, 1000); // el intervalo se ejecuta cada 1000 milisegundos (1 segundo)
-        //}
-//
-        //// finalizar la partida y redirigir a inicio.php
-        //function finalizarPartida() {
-        //    $.ajax({
-        //        url: 'finalizar_partida.php', // URL del archivo PHP que finaliza la partida
-        //        method: 'POST', // metodo HTTP POST
-        //        data: { sala_id: SALA_ACTUAL_ID }, // datos enviados al servidor, en este caso el id de la sala
-        //        success: function(response) { // funcion que se ejecuta si la solicitud es exitosa
-        //            const data = JSON.parse(response); // convierte la respuesta JSON en un objeto
-        //            if (data.success) { // si la respuesta indica exito
-        //                mostrarMensaje('La partida ha terminado. Redirigiendo...', 'info'); // muestra un mensaje de informacion
-        //                setTimeout(() => { // establece un temporizador para redirigir despues de 3 segundos
-        //                    window.location.href = '../inicio.php'; // redirige a la pagina de inicio
-        //                }, 3000); // el temporizador se ejecuta despues de 3000 milisegundos (3 segundos)
-        //            } else {
-        //                mostrarMensaje('Error al finalizar la partida', 'error'); // muestra un mensaje de error si algo falla
-        //            }
-        //        }
-        //    });
-        //}
+        // contador de 5 minutos
+        function startTimer() {
+            let time = 300; // 5 minutos en segundos
+            const contadorElement = document.getElementById('container-contador');
+            const intervalo = setInterval(function() {
+                const minutos = Math.floor(time / 60);
+                const segundos = time % 60;
+                contadorElement.innerText = `${minutos}:${segundos < 10 ? '0' : ''}${segundos}`;
+                if (time <= 0) {
+                    clearInterval(intervalo);
+                    partidafinalizada();
+                }
+                time--;
+            }, 1000);
+        }
 
-        //// cuando la pagina se carga
+        function partidafinalizada() {
+            window.location.href = `../inicio.php`;
+        }
+
+        // Iniciar el contador cuando la página se carga
         $(document).ready(function() {
-            //iniciarContador();
+            startTimer();
             window.intervalJugadorActual = setInterval(actualizarJugadorActual, 2000);
             window.intervalOtrosJugadores = setInterval(actualizarOtrosJugadores, 2000);
             window.intervalPuntos = setInterval(actualizarPuntos, 2000);
-            //se utiliza el window.interval para que se ejecute la funcion cada 2 segundos
         });
     </script>
 </body>
