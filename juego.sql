@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 09-03-2025 a las 21:27:46
+-- Tiempo de generación: 10-03-2025 a las 02:33:00
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -96,12 +96,13 @@ CREATE TABLE `partidas` (
 --
 
 INSERT INTO `partidas` (`ID_partida`, `fecha_inicio`, `fecha_fin`, `ID_usuario`, `ID_sala`, `puntos_partida`, `dano_total`, `headshots`) VALUES
-(94, '2025-03-08 21:47:27', '0000-00-00 00:00:00', 4, 24, 3, 3, 0),
-(95, '2025-03-08 21:47:28', '0000-00-00 00:00:00', 9, 24, 22, 22, 0),
+(94, '2025-03-08 21:47:27', '0000-00-00 00:00:00', 4, 26, 3, 3, 0),
+(95, '2025-03-08 21:47:28', '0000-00-00 00:00:00', 9, 26, 22, 22, 0),
 (96, '2025-03-08 21:47:30', '0000-00-00 00:00:00', 9, 24, 22, 22, 0),
-(97, '2025-03-08 21:47:31', '0000-00-00 00:00:00', 4, 24, 3, 3, 0),
-(98, '2025-03-08 21:47:33', '0000-00-00 00:00:00', 9, 9, 22, 22, 0),
-(104, '2025-03-09 21:15:43', '0000-00-00 00:00:00', 1, 9, 108, 10, 0);
+(97, '2025-03-08 21:47:31', '0000-00-00 00:00:00', 4, 25, 3, 3, 0),
+(98, '2025-03-08 21:47:33', '0000-00-00 00:00:00', 9, 25, 22, 22, 0),
+(105, '2025-03-09 23:42:53', '2025-03-09 23:42:53', 8, 25, 0, 0, 0),
+(111, '2025-03-10 01:37:03', '0000-00-00 00:00:00', 10, 25, 312, 54, 1);
 
 -- --------------------------------------------------------
 
@@ -135,8 +136,9 @@ INSERT INTO `salas` (`ID_sala`, `nombre_sala`, `jugadores`, `nivel_requerido`, `
 (22, 'Sala 6', 5, 0, 2, 0, '2025-03-08 20:16:32'),
 (23, 'Sala 7', 5, 0, 2, 0, '2025-03-08 20:27:27'),
 (24, 'Sala 8', 5, 0, 2, 0, '2025-03-08 20:45:41'),
-(25, 'Sala 9', 0, 0, 2, 0, '2025-03-08 23:06:15'),
-(26, 'Sala 4', 0, 0, 1, 0, '2025-03-09 20:22:52');
+(25, 'Sala 9', 4, 0, 1, 0, '2025-03-08 23:06:15'),
+(26, 'Sala 4', 5, 0, 1, 0, '2025-03-09 20:22:52'),
+(28, 'Sala 6', 0, 0, 1, 0, '2025-03-10 01:03:53');
 
 --
 -- Índices para tablas volcadas
@@ -190,13 +192,13 @@ ALTER TABLE `mapas`
 -- AUTO_INCREMENT de la tabla `partidas`
 --
 ALTER TABLE `partidas`
-  MODIFY `ID_partida` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=105;
+  MODIFY `ID_partida` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=113;
 
 --
 -- AUTO_INCREMENT de la tabla `salas`
 --
 ALTER TABLE `salas`
-  MODIFY `ID_sala` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
+  MODIFY `ID_sala` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 
 --
 -- Restricciones para tablas volcadas
