@@ -1,7 +1,6 @@
 <?php
     session_start();
     require_once('../conex/conex.php');
-	// include 'mapas.php';
     $conex = new Database;
     $con = $conex->conectar();
 ?>
@@ -13,6 +12,11 @@
         INNER JOIN estado ON usuario.ID_estado = estado.ID_estado INNER JOIN avatar ON usuario.ID_avatar = avatar.ID_avatar WHERE usuario.ID_usuario = '$id_usuario'");
         $sql -> execute();
         $u = $sql -> fetch();
+
+        if ($u['Puntos'] >= 500 && $u['nivel'] < 2) {
+            $updateNivel = $con->prepare("UPDATE usuario SET nivel = 2 WHERE ID_usuario = '$id_usuario'");
+            $updateNivel->execute();
+        }
     }
     else {
         echo '<script>alert("Debes iniciar sesión para acceder a esta página")</script>';

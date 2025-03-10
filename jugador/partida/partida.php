@@ -4,27 +4,28 @@ require_once('../../conex/conex.php');
 $conex = new Database;
 $con = $conex->conectar();
 
-$ruta_avatares = "../../img/avatares/";
+$ruta_avatares = "../../img/avatares/"; //creamos una variable para guardar la ruta de los avatares
 
     if (isset($_GET['id_sala'])) {
         $id_usuario = $_SESSION['id_usuario'];
         $id_sala = $_GET['id_sala'];
 
-$sql = $con->prepare("SELECT usuario.ID_usuario, usuario.username, usuario.vida, avatar.imagen 
-          FROM usuario 
-          INNER JOIN partidas ON usuario.ID_usuario = partidas.ID_usuario 
-          INNER JOIN avatar ON usuario.ID_avatar = avatar.ID_avatar 
-          WHERE partidas.ID_sala = ?");
-        $sql->execute([$id_sala]);
-$jugadores = $sql->fetchAll(PDO::FETCH_ASSOC);
+        $sql = $con->prepare("SELECT usuario.ID_usuario, usuario.username, usuario.vida, avatar.imagen 
+                  FROM usuario 
+                  INNER JOIN partidas ON usuario.ID_usuario = partidas.ID_usuario 
+                  INNER JOIN avatar ON usuario.ID_avatar = avatar.ID_avatar 
+                  WHERE partidas.ID_sala = ?");
+                $sql->execute([$id_sala]);
+
+        $jugadores = $sql->fetchAll(PDO::FETCH_ASSOC);//guardamos los datos de los jugadores en un array
 
 
-$sql = $con->prepare("SELECT username, vida, Puntos, avatar.imagen
-                FROM usuario 
-                INNER JOIN avatar ON usuario.ID_avatar = avatar.ID_avatar
-                WHERE ID_usuario = ?");
-        $sql->execute([$id_usuario]);
-$jugadorActual = $sql->fetch(PDO::FETCH_ASSOC);
+        $sql = $con->prepare("SELECT username, vida, Puntos, avatar.imagen
+                        FROM usuario 
+                        INNER JOIN avatar ON usuario.ID_avatar = avatar.ID_avatar
+                        WHERE ID_usuario = ?");
+                $sql->execute([$id_usuario]);
+        $jugadorActual = $sql->fetch(PDO::FETCH_ASSOC);//guardamos los datos del jugador actual en un array
     }
 ?>
 
@@ -59,10 +60,11 @@ $jugadorActual = $sql->fetch(PDO::FETCH_ASSOC);
                 </div>
             </div>
 
-            <!-- grid de jugadores -->
+            <!-- grid de jugadores
+                Esta seccion es para mostrar a los demas jugadores -->
             <div class="jugadores-grid">
-                <?php foreach($jugadores as $jugador): ?>
-                    <?php if($jugador['ID_usuario'] != $id_usuario): ?>
+                <?php foreach($jugadores as $jugador)://abrimos un foreach para recorrer los jugadores que estan en la sala
+                         if($jugador['ID_usuario'] != $id_usuario): //si el id del jugador es diferente al id del jugador actual, entonces lo muestra ?>
                         <div class="jugador-card" data-id="<?php echo $jugador['ID_usuario']; ?>">
                             <img src="<?php echo $ruta_avatares . $jugador['imagen']; ?>" alt="Avatar">
                             <h3><?php echo $jugador['username']; ?></h3>
@@ -74,8 +76,8 @@ $jugadorActual = $sql->fetch(PDO::FETCH_ASSOC);
                             <button onclick="seleccionarObjetivo(<?php echo $jugador['ID_usuario']; ?>)" 
                                     class="btn-atacar">Atacar</button>
                         </div>
-                    <?php endif; ?>
-                <?php endforeach; ?>
+                        <?php endif;//cerramos la condicion  ?>
+                <?php endforeach; //cerramos el ciclo?>
             </div>
         </main>
 
@@ -149,8 +151,10 @@ $jugadorActual = $sql->fetch(PDO::FETCH_ASSOC);
             // cuando hacemos click en un arma, atacamos
             $('.arma-opcion').off('click').on('click', function() {
                 const dano = parseInt($(this).data('dano'));
-                console.log('Daño seleccionado:', dano); // Debug
-                realizarAtaque(objetivoSeleccionado, dano, false);
+                // 10% de probabilidad de headshot
+                const esHeadshot = Math.random() < 0.30;//utilizamos la librereria Math.random() para que el headshot tenga una probabilidad de 30%
+                console.log('Daño seleccionado:', dano, 'Headshot:', esHeadshot);
+                realizarAtaque(objetivoSeleccionado, dano, esHeadshot);
             });
             
             // muestra la ventana de armas
@@ -159,13 +163,18 @@ $jugadorActual = $sql->fetch(PDO::FETCH_ASSOC);
             });
         }
 
-        // funcion que hace el ataque al jugador seleccionado
+        // funcion que procesa el ataque a otro jugador
         function realizarAtaque(objetivoId, dano, esHeadshot) {
+            // muestra en consola los detalles del ataque para debugging
+            console.log('Realizando ataque:', { objetivoId, dano, esHeadshot });
+
+            // verifica que tengamos un objetivo valido y daño definido
             if (!objetivoId || dano === undefined) {
                 cerrarVentana();
                 return;
             }
 
+            // primera verificacion: revisa si el atacante esta vivo
             $.ajax({
                 url: 'obtener_vida_actual.php',
                 method: 'GET',
@@ -173,11 +182,13 @@ $jugadorActual = $sql->fetch(PDO::FETCH_ASSOC);
                 success: function(response) {
                     const datos = JSON.parse(response);
                     
+                    // si el atacante esta muerto, cancela el ataque
                     if (datos.vida <= 0) {
                         cerrarVentana();
                         return;
                     }
 
+                    // segunda verificacion: revisa si el objetivo esta vivo
                     $.ajax({
                         url: 'obtener_vida_actual.php',
                         method: 'GET',
@@ -185,6 +196,7 @@ $jugadorActual = $sql->fetch(PDO::FETCH_ASSOC);
                         success: function(targetResponse) {
                             const targetData = JSON.parse(targetResponse);
                             
+                            // si el objetivo esta muerto, cancela el ataque
                             if (targetData.vida <= 0) {
                                 cerrarVentana();
                                 return;
@@ -196,18 +208,24 @@ $jugadorActual = $sql->fetch(PDO::FETCH_ASSOC);
                                 data: {
                                     objetivo_id: objetivoId,
                                     dano: dano,
-                                    es_headshot: esHeadshot ? 1 : 0,
+                                    es_headshot: esHeadshot ? 1 : 0,//esto es para que el headshot sea 1 o 0, si es true, es 1, si es false, es 0
                                     id_sala: SALA_ACTUAL_ID  // Agregamos el id de la sala
                                 },
                                 dataType: 'json',
                                 success: function(data) {
                                     if (data.success) {
                                         actualizarVidaJugador(objetivoId, data.vida_restante);
-                                        mostrarMensaje(`Daño causado: ${data.dano_causado}`, 'info');
-                                        actualizarPuntos();
-                                    }
-                                    cerrarVentana();
+                                        if (data.esHeadshot) {//aqui le decimos que si es headshot, muestre un mensaje diferente
+                                            mostrarMensaje(`¡HEADSHOT! Daño causado: ${data.dano_causado}`, 'critical');
+                                        } else {//si no es headshot simplemente mostramos el mensaje del daño q hizo
+                                            mostrarMensaje(`Daño causado: ${data.dano_causado}`, 'info');
+                                        }
+                                        actualizarPuntos();//al final actualizamos los puntos
+                                    } else {
+                                        mostrarMensaje('Error al realizar el ataque', 'error');//por si no se pudo realizar el ataque, mostramos este mensaje                                    }
+                                    cerrarVentana();//y llamamos a la funcion cerrarVentana() para cerrar la ventana :b
                                     objetivoSeleccionado = null;
+                                    }
                                 }
                             });
                         }
@@ -225,12 +243,11 @@ $jugadorActual = $sql->fetch(PDO::FETCH_ASSOC);
                 success: function(r) {
                     const datos = JSON.parse(r);
                     // calcula cuanto mide la barra de vida
-                    const porcentaje = (datos.vida / 100) * 100;
+                    const porcentaje = (datos.vida / 100) * 100;//se calcula asi la vida ya que es un porcentaje ejem: (50/100) * 100 = 50%
                     $('.jugador-actual .vida-actual')
-                        .css('width', `${porcentaje}%`)
-                        .text(`${datos.vida}/100`);
-                    
-                    // si morimos, desactiva los controles
+                        .css('width', `${porcentaje}%`)//ajusta el ancho de la barra de vida al porcentaje calculado
+                        .text(`${datos.vida}/100`);//actualiza el texto dentro de la barra de vida para mostrar la vida actual ejem: (50/100) 
+                    // evalua si morimos y desactiva los controles
                     if (datos.vida <= 0) {
                         desactivarControlesJuego();
                         mostrarMensaje('has muerto', 'error');
@@ -247,7 +264,7 @@ $jugadorActual = $sql->fetch(PDO::FETCH_ASSOC);
                 method: 'GET',
                 data: { usuario_id: USUARIO_ACTUAL_ID },
                 success: function(currentResponse) {
-                    const datosActual = JSON.parse(currentResponse);
+                    const datosActual = JSON.parse(currentResponse);// la respuesta del servidor se convierte en un objeto (datosActual)
                     
                     // luego revisa la vida de todos
                     $.ajax({
@@ -255,7 +272,7 @@ $jugadorActual = $sql->fetch(PDO::FETCH_ASSOC);
                         data: { sala_id: SALA_ACTUAL_ID },
                         method: 'GET',
                         success: function(r) {
-                            const vidas = JSON.parse(r);
+                            const vidas = JSON.parse(r); //la respuesta se convierte en un objeto (vidas) que traera las vidas de los jugadores
                             let jugadoresVivos = 0;
                             let ultimoJugadorVivo = null;
 
@@ -310,9 +327,9 @@ $jugadorActual = $sql->fetch(PDO::FETCH_ASSOC);
                     usuario_id: USUARIO_ACTUAL_ID
                 },
                 success: function(r) {
-                    const datos = JSON.parse(r);
+                    const datos = JSON.parse(r);//el objeto datos traera
                     if (datos && datos.Puntos !== undefined) {
-                        $('.jugador-actual .stats p').text(`Puntos: ${datos.Puntos}`);
+                        $('.jugador-actual .stats p').text(`Puntos: ${datos.Puntos}`);// en esta linea se actualiza el texto de los puntos
                     }
                 }
             });
@@ -328,7 +345,7 @@ $jugadorActual = $sql->fetch(PDO::FETCH_ASSOC);
                     sala_id: SALA_ACTUAL_ID 
                 },
                 success: function(r) {
-                    const stats = JSON.parse(r);
+                    const stats = JSON.parse(r);//obtenemos las estadisticas del jugador actual
                     
                     $('#puntos-totales').text(`Puntos en esta partida: ${stats.puntos_partida}`);
                     $('#eliminaciones').text(`Headshots: ${stats.headshots}`);
@@ -343,10 +360,10 @@ $jugadorActual = $sql->fetch(PDO::FETCH_ASSOC);
         function volverAlLobby() {
             partidaTerminada = false;
             estadisticasActualizadas = false;
-            window.location.href = '../sala/lobby.php';
+            window.location.href = '../inicio.php';
         }
 
-        // desactiva los botones de ataque cuando morimos
+        // funcion que desactiva los botones de ataque cuando morimos
         function desactivarControlesJuego() {
             const botonesAtaque = document.querySelectorAll('.btn-atacar');
             botonesAtaque.forEach(boton => {
@@ -441,26 +458,51 @@ $jugadorActual = $sql->fetch(PDO::FETCH_ASSOC);
                 }
             });
         }
+        
+        //// iniciar el contador de 5 minutos
+        //function iniciarContador() {
+        //    let tiempo = 300; // 5 minutos en segundos (300 seg)
+        //    const contadorElement = document.getElementById('container-contador'); // selecciona el elemento del contador en el DOM
+        //    const intervalo = setInterval(function() { // establece un intervalo que se ejecuta cada segundo
+        //        const minutos = Math.floor(tiempo / 60); // calcula los minutos restantes
+        //        const segundos = tiempo % 60; // calcula los segundos restantes
+        //        // actualiza el texto del contador con el formato mm:ss
+        //        contadorElement.innerText = `${minutos}:${segundos < 10 ? '0' : ''}${segundos}`;
+        //        if (tiempo <= 0) { // si el tiempo llega a 0
+        //            clearInterval(intervalo); // detiene el intervalo
+        //            finalizarPartida(); // llama a la funcion para finalizar la partida
+        //        }
+        //        tiempo--; // decrementa el tiempo en 1 segundo
+        //    }, 1000); // el intervalo se ejecuta cada 1000 milisegundos (1 segundo)
+        //}
+//
+        //// finalizar la partida y redirigir a inicio.php
+        //function finalizarPartida() {
+        //    $.ajax({
+        //        url: 'finalizar_partida.php', // URL del archivo PHP que finaliza la partida
+        //        method: 'POST', // metodo HTTP POST
+        //        data: { sala_id: SALA_ACTUAL_ID }, // datos enviados al servidor, en este caso el id de la sala
+        //        success: function(response) { // funcion que se ejecuta si la solicitud es exitosa
+        //            const data = JSON.parse(response); // convierte la respuesta JSON en un objeto
+        //            if (data.success) { // si la respuesta indica exito
+        //                mostrarMensaje('La partida ha terminado. Redirigiendo...', 'info'); // muestra un mensaje de informacion
+        //                setTimeout(() => { // establece un temporizador para redirigir despues de 3 segundos
+        //                    window.location.href = '../inicio.php'; // redirige a la pagina de inicio
+        //                }, 3000); // el temporizador se ejecuta despues de 3000 milisegundos (3 segundos)
+        //            } else {
+        //                mostrarMensaje('Error al finalizar la partida', 'error'); // muestra un mensaje de error si algo falla
+        //            }
+        //        }
+        //    });
+        //}
 
-        // cuando la pagina carga
+        //// cuando la pagina se carga
         $(document).ready(function() {
-            // configurar la ventana del ganador
-            $('#modal-ganador').css({
-                'position': 'fixed',
-                'top': '50%',
-                'left': '50%',
-                'transform': 'translate(-50%, -50%)',
-                'background-color': 'white',
-                'padding': '20px',
-                'border-radius': '5px',
-                'box-shadow': '0 0 10px rgba(0,0,0,0.5)',
-                'z-index': '9999'
-            });
-
-            // actualiza la informacion cada 2 segundos
+            //iniciarContador();
             window.intervalJugadorActual = setInterval(actualizarJugadorActual, 2000);
             window.intervalOtrosJugadores = setInterval(actualizarOtrosJugadores, 2000);
             window.intervalPuntos = setInterval(actualizarPuntos, 2000);
+            //se utiliza el window.interval para que se ejecute la funcion cada 2 segundos
         });
     </script>
 </body>
