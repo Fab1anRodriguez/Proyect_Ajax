@@ -8,7 +8,7 @@ unset($_SESSION['estado']);
 session_destroy();
 session_write_close();
 
-header("Location: ../login.html");
+header("Location: ../index.html");
 exit();
 
 ?>

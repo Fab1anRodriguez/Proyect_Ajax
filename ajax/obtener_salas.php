@@ -6,29 +6,26 @@ $con = $conex->conectar();
 
 if (isset($_GET['id_select_sala'])) {
     $id_select_sala = $_GET['id_select_sala'];
-    $sqlSalas = $con->prepare("SELECT * FROM salas WHERE ID_mapas = :id_select_sala");
-    $sqlSalas->bindParam(':id_select_sala', $id_select_sala, PDO::PARAM_INT);
-    $sqlSalas->execute();
+    $sqlSalas = $con->prepare("SELECT * FROM salas WHERE ID_mapas = ?");
+    $sqlSalas->execute([$id_select_sala]);
     $salas = $sqlSalas->fetchAll(PDO::FETCH_ASSOC);
 
-    // Verificar si todas las salas están llenas
+    // verificar si todas las salas estan llenas
     $todasLlenas = true;
     foreach ($salas as $sala) {
-        if ($sala['jugadores'] < 5) {
+        if ($sala['jugadores'] < 3) {
             $todasLlenas = false;
             break;
         }
     }
 
-    // Crear una nueva sala si todas están llenas
+    // crear una nueva sala si todas estan llenas
     if ($todasLlenas) {
         $nuevoNombreSala = "Sala " . (count($salas) + 1);
-        $sqlNuevaSala = $con->prepare("INSERT INTO salas (nombre_sala, jugadores, ID_mapas) VALUES (:nombre_sala, 0, :id_select_sala)");
-        $sqlNuevaSala->bindParam(':id_select_sala', $id_select_sala, PDO::PARAM_INT);
-        $sqlNuevaSala->bindParam(':nombre_sala', $nuevoNombreSala, PDO::PARAM_STR);
-        $sqlNuevaSala->execute();
+        $sqlNuevaSala = $con->prepare("INSERT INTO salas (nombre_sala, jugadores, ID_mapas, tiempo) VALUES (?, 0, ?, 120)");
+        $sqlNuevaSala->execute([$nuevoNombreSala, $id_select_sala]);
 
-        $sqlSalas->execute();
+        $sqlSalas->execute([$id_select_sala]);
         $salas = $sqlSalas->fetchAll(PDO::FETCH_ASSOC);
     }
 

@@ -1,7 +1,6 @@
 <?php
     session_start();
     require_once('../conex/conex.php');
-    require_once('../include/time.php');
     $conex = new Database;
     $con = $conex->conectar();
 
@@ -48,7 +47,7 @@
                                 <h4><i class="bi bi-person-fill"></i>${sala.jugadores}/5</h4>
                             </div>
                             <div class="container-button">
-                                ${sala.jugadores < 5 ? `<a href="sala_espera.php?id_sala=${sala.ID_sala}"><button>UNIRSE</button></a>` : `<button disabled class='button-disabled'>LLENO</button>`}
+                                ${sala.jugadores < 3 ? `<a href="sala_espera.php?id_sala=${sala.ID_sala}"><button>UNIRSE</button></a>` : `<button disabled class='button-disabled'>LLENO</button>`}
                             </div>
                         </div>
                     `;

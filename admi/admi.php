@@ -1,5 +1,4 @@
 <?php
-
 require_once '../conex/conex.php';
 $conexion = new database();
 $con = $conexion->conectar();
@@ -81,7 +80,7 @@ $con = $conexion->conectar();
                             <th>Acción</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="usuariosBody">
                         <?php
                         // obtener lista de usuarios
                         $sql = "SELECT ID_usuario, username, nivel, Puntos, ID_estado FROM usuario";
@@ -196,6 +195,38 @@ $con = $conexion->conectar();
             btn.className = `btn ${btnClass}`;
             btn.innerText = btnText;
         }
+
+        // funcion para cargar usuarios
+        function cargarUsuarios() {
+            fetch('admin_actions.php')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                    } else {
+                        let usuariosBody = document.getElementById('usuariosBody');
+                        usuariosBody.innerHTML = '';
+                        data.forEach(jugador => {
+                            let estadoText = jugador.Estado === 1 ? 'Desbloqueado' : 'Bloqueado';
+                            let btnClass = jugador.Estado === 1 ? 'btn-danger' : 'btn-success';
+                            let btnText = jugador.Estado === 1 ? 'Bloquear' : 'Desbloquear';
+                            usuariosBody.innerHTML += `
+                                <tr>
+                                    <td>${jugador.ID}</td>
+                                    <td>${jugador.Nombre}</td>
+                                    <td>${jugador.Nivel}</td>
+                                    <td>${jugador.Puntos}</td>
+                                    <td id="estado-${jugador.ID}">${estadoText}</td>
+                                    <td><button id="btn-${jugador.ID}" class="btn ${btnClass}" onclick="cambiarEstado(${jugador.ID})">${btnText}</button></td>
+                                </tr>`;
+                        });
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        // Llama a la función para cargar los usuarios al cargar la página
+        document.addEventListener('DOMContentLoaded', cargarUsuarios);
     </script>
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

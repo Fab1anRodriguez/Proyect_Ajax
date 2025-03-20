@@ -1,33 +1,28 @@
 <?php
 session_start();
 require_once('../../conex/conex.php');
-require_once('../../include/time.php');
 $conex = new Database;
 $con = $conex->conectar();
 
-$ruta_avatares = "../../img/avatares/"; //creamos una variable para guardar la ruta de los avatares
+$ruta_avatares = "../../img/avatares/";
 
-    if (isset($_GET['id_sala'])) {
-        $id_usuario = $_SESSION['id_usuario'];
-        $id_sala = $_GET['id_sala'];
+$id_usuario = $_SESSION['id_usuario'];
+$id_sala = $_GET['id_sala'];
 
-        $sql = $con->prepare("SELECT usuario.ID_usuario, usuario.username, usuario.vida, avatar.imagen 
-                  FROM usuario 
-                  INNER JOIN partidas ON usuario.ID_usuario = partidas.ID_usuario 
-                  INNER JOIN avatar ON usuario.ID_avatar = avatar.ID_avatar 
-                  WHERE partidas.ID_sala = ?");
-                $sql->execute([$id_sala]);
+$sql = $con->prepare("SELECT usuario.ID_usuario, usuario.username, usuario.vida, avatar.imagen 
+                      FROM usuario 
+                      INNER JOIN partidas ON usuario.ID_usuario = partidas.ID_usuario 
+                      INNER JOIN avatar ON usuario.ID_avatar = avatar.ID_avatar 
+                      WHERE partidas.ID_sala = ?");
+$sql->execute([$id_sala]);
+$jugadores = $sql->fetchAll(PDO::FETCH_ASSOC);
 
-        $jugadores = $sql->fetchAll(PDO::FETCH_ASSOC);//guardamos los datos de los jugadores en un array
-
-
-        $sql = $con->prepare("SELECT username, vida, Puntos, avatar.imagen
-                        FROM usuario 
-                        INNER JOIN avatar ON usuario.ID_avatar = avatar.ID_avatar
-                        WHERE ID_usuario = ?");
-                $sql->execute([$id_usuario]);
-        $jugadorActual = $sql->fetch(PDO::FETCH_ASSOC);//guardamos los datos del jugador actual en un array
-    }
+$sql = $con->prepare("SELECT username, vida, Puntos, avatar.imagen
+                      FROM usuario 
+                      INNER JOIN avatar ON usuario.ID_avatar = avatar.ID_avatar
+                      WHERE ID_usuario = ?");
+$sql->execute([$id_usuario]);
+$jugadorActual = $sql->fetch(PDO::FETCH_ASSOC);
 ?>
 
 <!DOCTYPE html>
@@ -43,49 +38,47 @@ $ruta_avatares = "../../img/avatares/"; //creamos una variable para guardar la r
     <div class="container">
     <header>
         <h1>Partida en Curso</h1>
-        <div id="container-contador">30</div>
+        <div id="container-contador">2:00</div>
     </header>
 
-        <main>
-            <!-- mostrar jugador actual -->
-            <div class="jugador-actual">
-                <h2>Username: <?php echo $jugadorActual['username']; ?></h2>
-                <div class="stats">
-                    <!--primero concatenamos la ruta y luego le decimos cual es el nombre del avatar q tiene el player y se le cambia el tamaño-->
-                    <img src="<?php echo $ruta_avatares . $jugadorActual['imagen']; ?>" alt="Avatar" style="width: 150px; height: 220px;">
-                    <div class="vida-barra">
-                        <div class="vida-actual" style="width: <?php echo ($jugadorActual['vida']/100)*100; ?>%">
-                            <?php echo $jugadorActual['vida']; ?>/100
-                        </div>
+    <main>
+        <!-- mostrar jugador actual -->
+        <div class="jugador-actual">
+            <h2>Username: <?php echo $jugadorActual['username']; ?></h2>
+            <div class="stats">
+                <img src="<?php echo $ruta_avatares . $jugadorActual['imagen']; ?>" alt="Avatar" style="width: 150px; height: 220px;">
+                <div class="vida-barra">
+                    <div class="vida-actual" style="width: <?php echo ($jugadorActual['vida']/100)*100; ?>%">
+                        <?php echo $jugadorActual['vida']; ?>/100
                     </div>
-                    <p>Puntos: <?php echo $jugadorActual['Puntos']; ?></p>
                 </div>
+                <p>Puntos: <?php echo $jugadorActual['Puntos']; ?></p>
             </div>
+        </div>
 
-            <!-- grid de jugadores
-                Esta seccion es para mostrar a los demas jugadores -->
-            <div class="jugadores-grid">
-                <?php foreach($jugadores as $jugador)://abrimos un foreach para recorrer los jugadores que estan en la sala
-                         if($jugador['ID_usuario'] != $id_usuario): //si el id del jugador es diferente al id del jugador actual, entonces lo muestra ?>
-                        <div class="jugador-card" data-id="<?php echo $jugador['ID_usuario']; ?>">
-                            <img src="<?php echo $ruta_avatares . $jugador['imagen']; ?>" alt="Avatar">
-                            <h3><?php echo $jugador['username']; ?></h3>
-                            <div class="vida-barra">
-                                <div class="vida-actual" style="width: <?php echo ($jugador['vida']/100)*100; ?>%">
-                                    <?php echo $jugador['vida']; ?>/100
-                                </div>
+        <!-- grid de jugadores -->
+        <div class="jugadores-grid">
+            <?php foreach($jugadores as $jugador):
+                     if($jugador['ID_usuario'] != $id_usuario): ?>
+                    <div class="jugador-card" data-id="<?php echo $jugador['ID_usuario']; ?>">
+                        <img src="<?php echo $ruta_avatares . $jugador['imagen']; ?>" alt="Avatar">
+                        <h3><?php echo $jugador['username']; ?></h3>
+                        <div class="vida-barra">
+                            <div class="vida-actual" style="width: <?php echo ($jugador['vida']/100)*100; ?>%">
+                                <?php echo $jugador['vida']; ?>/100
                             </div>
-                            <button onclick="seleccionarObjetivo(<?php echo $jugador['ID_usuario']; ?>)" 
-                                    class="btn-atacar">Atacar</button>
                         </div>
-                        <?php endif;//cerramos la condicion  ?>
-                <?php endforeach; //cerramos el ciclo?>
-            </div>
-        </main>
+                        <button onclick="seleccionarObjetivo(<?php echo $jugador['ID_usuario']; ?>)" 
+                                class="btn-atacar">Atacar</button>
+                    </div>
+                    <?php endif; ?>
+            <?php endforeach; ?>
+        </div>
+    </main>
 
-        <footer>
-            <button onclick="abandonarPartida()" class="btn-abandonar">Abandonar Partida</button>
-        </footer>
+    <footer>
+        <button onclick="abandonarPartida()" class="btn-abandonar">Abandonar Partida</button>
+    </footer>
     </div>
 
     <!-- Modal para seleccionar arma -->
@@ -93,7 +86,6 @@ $ruta_avatares = "../../img/avatares/"; //creamos una variable para guardar la r
         <div class="modal-content">
             <h2>Selecciona un arma</h2>
             <div id="lista-armas" class="lista-armas"></div>
-            <!-- <button class="btn-cancelar" onclick="cerrarModal()">Cancelar</button> -->
         </div>
     </div>
 
@@ -131,14 +123,189 @@ $ruta_avatares = "../../img/avatares/"; //creamos una variable para guardar la r
         // variables para controlar el estado del juego
         let objetivoSeleccionado = null; // guarda el id del jugador que vamos a atacar
         let armaActual = null; // guarda el arma seleccionada
-        let danoArma = 0; // guarda el dano que hace el arma
         let partidaTerminada = false; // nos dice si la partida ya termino
         let estadisticasActualizadas = false; // nos dice si ya guardamos los resultados
 
-        // guarda el jugador que queremos atacar y muestra las armas
-        function seleccionarObjetivo(usuarioId) {
-            objetivoSeleccionado = usuarioId;
-            cargarArmas();
+        $(document).ready(function() {
+            startTimer();
+            window.intervalJugadorActual = setInterval(actualizarJugadorActual, 2000);
+            window.intervalOtrosJugadores = setInterval(actualizarOtrosJugadores, 2000);
+            window.intervalPuntos = setInterval(actualizarPuntos, 2000);
+                    });
+
+        function startTimer() {
+            const contadorElement = document.getElementById('container-contador');
+            const intervalo = setInterval(function() {
+                $.ajax({
+                    url: '../../ajax/actualizar_tiempo.php',
+                    method: 'POST',
+                    data: { id_sala: SALA_ACTUAL_ID },
+                    success: function(response) {
+                        const datos = JSON.parse(response);
+                        //calculo de minutos y segundos
+                        const minutos = Math.floor(datos.tiempo / 60);
+                        const segundos = datos.tiempo % 60;
+                        //actualizacion del contador ademas si los segundos
+                        contadorElement.innerText = `${minutos}:${segundos < 10 ? '0' : ''}${segundos}`;
+                        //aqui comprobamos si el tiempo es menor o igual a 0, si es asi, se detiene el intervalo y se determina el ganador
+                        if (datos.tiempo <= 0) {
+                            clearInterval(intervalo);
+                            determinarGanador();
+                        }
+                    }
+                });
+            }, 1000);
+        }
+
+        function determinarGanador() {
+            $.ajax({
+                url: 'determinar_ganador.php',
+                method: 'POST',
+                data: { sala_id: SALA_ACTUAL_ID },
+                success: function(response) {
+                    const datos = JSON.parse(response);
+                    if (datos.success) {
+                        mostrarGanador(datos.ganador);
+                    }
+                }
+            });
+        }
+
+        function mostrarGanador(ganador) {
+            $('.modal').hide();
+            const $modalGanador = $('#modal-ganador');
+            $modalGanador.css({
+                'display': 'block',
+                'position': 'fixed',
+                'top': '50%',
+                'left': '50%',
+                'transform': 'translate(-50%, -50%)',
+                'background-color': 'white',
+                'padding': '20px',
+                'border-radius': '5px',
+                'box-shadow': '0 0 10px rgba(0,0,0,0.5)',
+                'z-index': '99999'
+            }).show();
+            $('#nombre-ganador').text(ganador.username);
+            desactivarControlesJuego();
+            if (!estadisticasActualizadas) {
+                $.ajax({
+                    url: 'actualizar_estadisticas_partida.php',
+                    method: 'POST',
+                    data: {
+                        sala_id: SALA_ACTUAL_ID,
+                        ganador_id: ganador.ID_usuario
+                    },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            estadisticasActualizadas = true;
+                        }
+                    }
+                });
+            }
+        }
+
+        function abandonarPartida() {
+            $.ajax({
+                url: 'abandonar_partida.php',
+                method: 'POST',
+                data: {
+                    usuario_id: USUARIO_ACTUAL_ID,
+                    sala_id: SALA_ACTUAL_ID
+                },
+                success: function(response) {
+                    window.location.replace('../inicio.php');
+                }
+            });
+        }
+
+        // actualiza nuestra barra de vida
+        function actualizarJugadorActual() {
+            $.ajax({
+                url: 'obtener_vida_actual.php',
+                method: 'GET',
+                data: { usuario_id: USUARIO_ACTUAL_ID },
+                success: function(r) {
+                    const datos = JSON.parse(r);
+                    // calcula cuanto mide la barra de vida
+                    const porcentaje = (datos.vida / 100) * 100;//se calcula asi la vida ya que es un porcentaje ejem: (50/100) * 100 = 50%
+                    $('.jugador-actual .vida-actual')
+                        .css('width', `${porcentaje}%`)//ajusta el ancho de la barra de vida al porcentaje calculado
+                        .text(`${datos.vida}/100`);//actualiza el texto dentro de la barra de vida para mostrar la vida actual ejem: (50/100) 
+                    // evalua si morimos y desactiva los controles
+                    if (datos.vida <= 0) {
+                        desactivarControlesJuego();
+                        mostrarMensaje('has muerto', 'error');
+                    }
+                }
+            });
+        }
+
+        function actualizarOtrosJugadores() {
+            $.ajax({
+                url: 'obtener_vida_actual.php',
+                method: 'GET',
+                data: { usuario_id: USUARIO_ACTUAL_ID },
+                success: function(currentResponse) {
+                    const datosActual = JSON.parse(currentResponse);
+                    $.ajax({
+                        url: 'obtener_vidas.php',
+                        data: { sala_id: SALA_ACTUAL_ID },
+                        method: 'GET',
+                        success: function(r) {
+                            const vidas = JSON.parse(r);
+                            let jugadoresVivos = 0;
+                            let ultimoJugadorVivo = null;
+
+                            if (parseInt(datosActual.vida) > 0) {
+                                jugadoresVivos++;
+                                ultimoJugadorVivo = {
+                                    ID_usuario: USUARIO_ACTUAL_ID,
+                                    username: $('.jugador-actual h2').text().replace('Username: ', ''),
+                                    vida: datosActual.vida
+                                };
+                            }
+
+                            vidas.forEach(jugador => {
+                                if (jugador.ID_usuario != USUARIO_ACTUAL_ID) {
+                                    const porcentaje = (jugador.vida / 100) * 100;
+                                    $(`.jugador-card[data-id="${jugador.ID_usuario}"] .vida-actual`)
+                                        .css('width', `${porcentaje}%`)
+                                        .text(`${jugador.vida}/100`);
+
+                                    if (parseInt(jugador.vida) > 0) {
+                                        jugadoresVivos++;
+                                        ultimoJugadorVivo = jugador;
+                                    }
+                                }
+                            });
+
+                            if (jugadoresVivos === 1 && ultimoJugadorVivo && !estadisticasActualizadas) {
+                                mostrarGanador(ultimoJugadorVivo);
+                                estadisticasActualizadas = true;
+                                clearInterval(window.intervalJugadorActual);
+                                clearInterval(window.intervalOtrosJugadores);
+                                clearInterval(window.intervalPuntos);
+                            }
+                        }
+                    });
+                }
+            });
+        }
+
+        function actualizarPuntos() {
+            $.ajax({
+                url: 'obtener_estadisticas.php',
+                method: 'GET',
+                data: { usuario_id: USUARIO_ACTUAL_ID },
+                success: function(r) {
+                    const datos = JSON.parse(r);
+                    if (datos && datos.Puntos !== undefined) {
+                        $('.jugador-actual .stats p').text(`Puntos: ${datos.Puntos}`);
+                    }
+                }
+            });
         }
 
         // pide al servidor las armas disponibles y las muestra en una ventana
@@ -163,6 +330,12 @@ $ruta_avatares = "../../img/avatares/"; //creamos una variable para guardar la r
             $('#modal-armas').show();
                 }
             });
+        }
+
+        // guarda el jugador que queremos atacar y muestra las armas
+        function seleccionarObjetivo(usuarioId) {
+            objetivoSeleccionado = usuarioId;
+            cargarArmas();
         }
 
         // funcion que procesa el ataque a otro jugador
@@ -219,8 +392,10 @@ $ruta_avatares = "../../img/avatares/"; //creamos una variable para guardar la r
                                         actualizarVidaJugador(objetivoId, data.vida_restante);
                                         if (data.esHeadshot) {//aqui le decimos que si es headshot, muestre un mensaje diferente
                                             mostrarMensaje(`¡HEADSHOT! Daño causado: ${data.dano_causado}`, 'critical');
+                                            cerrarVentana();
                                         } else {//si no es headshot simplemente mostramos el mensaje del daño q hizo
                                             mostrarMensaje(`Daño causado: ${data.dano_causado}`, 'info');
+                                            cerrarVentana();
                                         }
                                         actualizarPuntos();//al final actualizamos los puntos
                                     } else {
@@ -236,136 +411,6 @@ $ruta_avatares = "../../img/avatares/"; //creamos una variable para guardar la r
             });
         }
 
-        // actualiza nuestra barra de vida
-        function actualizarJugadorActual() {
-            $.ajax({
-                url: 'obtener_vida_actual.php',
-                method: 'GET',
-                data: { usuario_id: USUARIO_ACTUAL_ID },
-                success: function(r) {
-                    const datos = JSON.parse(r);
-                    // calcula cuanto mide la barra de vida
-                    const porcentaje = (datos.vida / 100) * 100;//se calcula asi la vida ya que es un porcentaje ejem: (50/100) * 100 = 50%
-                    $('.jugador-actual .vida-actual')
-                        .css('width', `${porcentaje}%`)//ajusta el ancho de la barra de vida al porcentaje calculado
-                        .text(`${datos.vida}/100`);//actualiza el texto dentro de la barra de vida para mostrar la vida actual ejem: (50/100) 
-                    // evalua si morimos y desactiva los controles
-                    if (datos.vida <= 0) {
-                        desactivarControlesJuego();
-                        mostrarMensaje('has muerto', 'error');
-                    }
-                }
-            });
-        }
-
-        // actualiza las vidas de los otros jugadores
-        function actualizarOtrosJugadores() {
-            // primero revisa nuestra vida
-            $.ajax({
-                url: 'obtener_vida_actual.php',
-                method: 'GET',
-                data: { usuario_id: USUARIO_ACTUAL_ID },
-                success: function(currentResponse) {
-                    const datosActual = JSON.parse(currentResponse);// la respuesta del servidor se convierte en un objeto (datosActual)
-                    
-                    // luego revisa la vida de todos
-                    $.ajax({
-                        url: 'obtener_vidas.php',
-                        data: { sala_id: SALA_ACTUAL_ID },
-                        method: 'GET',
-                        success: function(r) {
-                            const vidas = JSON.parse(r); //la respuesta se convierte en un objeto (vidas) que traera las vidas de los jugadores
-                            let jugadoresVivos = 0;
-                            let ultimoJugadorVivo = null;
-
-                            // cuenta si estamos vivos
-                            if (parseInt(datosActual.vida) > 0) {
-                                jugadoresVivos++;
-                                ultimoJugadorVivo = {
-                                    ID_usuario: USUARIO_ACTUAL_ID,
-                                    username: $('.jugador-actual h2').text().replace('Username: ', ''),
-                                    vida: datosActual.vida
-                                };
-                            }
-
-                            // cuenta los otros jugadores vivos
-                            vidas.forEach(jugador => {
-                                if (jugador.ID_usuario != USUARIO_ACTUAL_ID) {
-                                    // actualiza sus barras de vida
-                                    const porcentaje = (jugador.vida / 100) * 100;
-                                    $(`.jugador-card[data-id="${jugador.ID_usuario}"] .vida-actual`)
-                                        .css('width', `${porcentaje}%`)
-                                        .text(`${jugador.vida}/100`);
-
-                                    if (parseInt(jugador.vida) > 0) {
-                                        jugadoresVivos++;
-                                        ultimoJugadorVivo = jugador;
-                                    }
-                                }
-                            });
-
-                            // si solo queda un jugador vivo, termina la partida
-                            if (jugadoresVivos === 1 && ultimoJugadorVivo && !estadisticasActualizadas) {
-                                mostrarGanador(ultimoJugadorVivo);
-                                estadisticasActualizadas = true;
-                                
-                                // detiene todas las actualizaciones
-                                clearInterval(window.intervalJugadorActual);
-                                clearInterval(window.intervalOtrosJugadores);
-                                clearInterval(window.intervalPuntos);
-                            }
-                        }
-                    });
-                }
-            });
-        }
-
-        // actualiza los puntos en la pantalla
-        function actualizarPuntos() {
-            $.ajax({
-                url: 'obtener_estadisticas.php',
-                method: 'GET',
-                data: { 
-                    usuario_id: USUARIO_ACTUAL_ID
-                },
-                success: function(r) {
-                    const datos = JSON.parse(r);//el objeto datos traera
-                    if (datos && datos.Puntos !== undefined) {
-                        $('.jugador-actual .stats p').text(`Puntos: ${datos.Puntos}`);// en esta linea se actualiza el texto de los puntos
-                    }
-                }
-            });
-        }
-
-        // muestra las estadisticas finales
-        function mostrarEstadisticasFinales() {
-            $.ajax({
-                url: 'obtener_estadisticas.php',
-                method: 'GET',
-                data: { 
-                    usuario_id: USUARIO_ACTUAL_ID,
-                    sala_id: SALA_ACTUAL_ID 
-                },
-                success: function(r) {
-                    const stats = JSON.parse(r);//obtenemos las estadisticas del jugador actual
-                    
-                    $('#puntos-totales').text(`Puntos en esta partida: ${stats.puntos_partida}`);
-                    $('#eliminaciones').text(`Headshots: ${stats.headshots}`);
-                    $('#daño-total').text(`Daño total: ${stats.dano_total}`);
-                    
-                    $('#modal-estadisticas').show();
-                }
-            });
-        }
-
-        // volver al menu principal
-        function volverAlLobby() {
-            partidaTerminada = false;
-            estadisticasActualizadas = false;
-            window.location.href = '../inicio.php';
-        }
-
-        // funcion que desactiva los botones de ataque cuando morimos
         function desactivarControlesJuego() {
             const botonesAtaque = document.querySelectorAll('.btn-atacar');
             botonesAtaque.forEach(boton => {
@@ -373,12 +418,10 @@ $ruta_avatares = "../../img/avatares/"; //creamos una variable para guardar la r
                 boton.style.opacity = '0.5';
                 boton.style.cursor = 'not-allowed';
             });
-            
             cerrarVentana();
             $('.arma-opcion').off('click');
         }
 
-        // muestra mensajes temporales en la pantalla
         function mostrarMensaje(mensaje, tipo = 'info') {
             const divMensaje = document.createElement('div');
             divMensaje.className = `mensaje ${tipo}`;
@@ -387,7 +430,6 @@ $ruta_avatares = "../../img/avatares/"; //creamos una variable para guardar la r
             setTimeout(() => divMensaje.remove(), 3000);
         }
 
-        // actualiza la barra de vida de un jugador
         function actualizarVidaJugador(jugadorId, vidaRestante) {
             if (vidaRestante !== undefined) {
                 const porcentaje = (vidaRestante / 100) * 100;
@@ -397,18 +439,14 @@ $ruta_avatares = "../../img/avatares/"; //creamos una variable para guardar la r
             }
         }
 
-        // cierra la ventana de armas
         function cerrarVentana() {
             $('#modal-armas').hide();
             objetivoSeleccionado = null;
         }
 
-        // muestra quien gano la partida
         function mostrarGanador(jugador) {
-            // esconde todas las ventanas y muestra la del ganador
             $('.modal').hide();
             const $modalGanador = $('#modal-ganador');
-            
             $modalGanador.css({
                 'display': 'block',
                 'position': 'fixed',
@@ -421,12 +459,8 @@ $ruta_avatares = "../../img/avatares/"; //creamos una variable para guardar la r
                 'box-shadow': '0 0 10px rgba(0,0,0,0.5)',
                 'z-index': '99999'
             }).show();
-
-            // muestra el nombre del ganador
             $('#nombre-ganador').text(jugador.username);
             desactivarControlesJuego();
-
-            // guarda los resultados si no se han guardado
             if (!estadisticasActualizadas) {
                 $.ajax({
                     url: 'actualizar_estadisticas_partida.php',
@@ -444,50 +478,6 @@ $ruta_avatares = "../../img/avatares/"; //creamos una variable para guardar la r
                 });
             }
         }
-
-        // maneja el abandono de la partida
-        function abandonarPartida() {
-            $.ajax({
-                url: 'abandonar_partida.php',
-                method: 'POST',
-                data: {
-                    usuario_id: USUARIO_ACTUAL_ID,
-                    sala_id: SALA_ACTUAL_ID
-                },
-                success: function(response) {
-                    // redirige al inicio y evita que use el botón atrás
-                    window.location.replace('../inicio.php');
-                }
-            });
-        }
-        
-        // contador de 5 minutos
-        function startTimer() {
-            let time = 300; // 5 minutos en segundos
-            const contadorElement = document.getElementById('container-contador');
-            const intervalo = setInterval(function() {
-                const minutos = Math.floor(time / 60);
-                const segundos = time % 60;
-                contadorElement.innerText = `${minutos}:${segundos < 10 ? '0' : ''}${segundos}`;
-                if (time <= 0) {
-                    clearInterval(intervalo);
-                    partidafinalizada();
-                }
-                time--;
-            }, 1000);
-        }
-
-        function partidafinalizada() {
-            window.location.href = `../inicio.php`;
-        }
-
-        // Iniciar el contador cuando la página se carga
-        $(document).ready(function() {
-            startTimer();
-            window.intervalJugadorActual = setInterval(actualizarJugadorActual, 2000);
-            window.intervalOtrosJugadores = setInterval(actualizarOtrosJugadores, 2000);
-            window.intervalPuntos = setInterval(actualizarPuntos, 2000);
-        });
     </script>
 </body>
 </html>

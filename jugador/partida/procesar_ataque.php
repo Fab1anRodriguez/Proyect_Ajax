@@ -28,7 +28,7 @@ $vida_restante = max(0, $vida_actual - $dano);
 $sql = $con->prepare("UPDATE usuario SET vida = ? WHERE ID_usuario = ?");
 $sql->execute([$vida_restante, $objetivo_id]);
 
-// Actualizar puntos del atacante (100 si mata, o el valor del daño si no) es decir, si el objetivo muere, gana 100 puntos, si no, gana el daño causado
+// Actualizar puntos del atacante (100 si mata, o el valor del daño si no)
 $puntos = ($vida_restante <= 0) ? 100 : $dano;
 $sql = $con->prepare("UPDATE usuario SET Puntos = Puntos + ? WHERE ID_usuario = ?");
 $sql->execute([$puntos, $atacante_id]);
@@ -36,9 +36,10 @@ $sql->execute([$puntos, $atacante_id]);
 // Actualizar estadísticas de la partida
 $sql = $con->prepare("UPDATE partidas 
                      SET dano_total = COALESCE(dano_total, 0) + ?,
-                         puntos_partida = COALESCE(puntos_partida, 0) + ?
+                         puntos_partida = COALESCE(puntos_partida, 0) + ?,
+                         headshots = headshots + ?
                      WHERE ID_sala = ? AND ID_usuario = ?");
-$sql->execute([$dano, $puntos, $id_sala, $atacante_id]);
+$sql->execute([$dano, $puntos, $esHeadshot ? 1 : 0, $id_sala, $atacante_id]);//aqui para el headshot se le suma 1 si es headshot sino, se le suma 0
 
 // Devolver respuesta
 echo json_encode([

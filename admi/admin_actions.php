@@ -1,5 +1,7 @@
 <?php
 include '../conex/conex.php';
+require '../PHPMailer-master/config/env-correo.php'; // incluir la funcion de envio de correo
+
 header('Content-Type: application/json');
 
 $conexion = new database();
@@ -12,35 +14,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         // cambiar estado de usuario
         if ($data['action'] === 'cambiarEstado') {
-            $stmt = $con->prepare("UPDATE usuario SET ID_estado = :estado WHERE ID_usuario = :id");
-            $stmt->bindParam(':estado', $data['estado'], PDO::PARAM_INT);
-            $stmt->bindParam(':id', $data['id'], PDO::PARAM_INT);
-            
-            $exito = $stmt->execute();
-            echo json_encode([
-                'success' => $exito,
-                'error' => $exito ? null : 'no se pudo actualizar el estado'
-            ]);
+            $stmt = $con->prepare("UPDATE usuario SET ID_estado = ?, Ultimo_ingreso = NOW() WHERE ID_usuario = ?");
+            $exito = $stmt->execute([$data['estado'], $data['id']]);
+
+            if ($exito) {
+                if ($data['estado'] == 1) { // asumiendo que 1 es el estado activo
+                    // obtener email y username del usuario
+                    $stmt = $con->prepare("SELECT email, username FROM usuario WHERE ID_usuario = ?");
+                    $stmt->execute([$data['id']]);
+                    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                    if ($user) {
+                        if (!sendActivationEmail($user['email'], $user['username'])) {
+                            error_log("error al enviar correo de activacion a {$user['email']}");
+                        }
+                    }
+                }
+
+                echo json_encode([
+                    'success' => true,
+                    'error' => null
+                ]);
+            } else {
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'no se pudo actualizar el estado'
+                ]);
+            }
             exit;
         }
     } catch (PDOException $e) {
-        echo json_encode(['error' => 'Error: ' . $e->getMessage()]);
+        echo json_encode(['error' => 'error: ' . $e->getMessage()]);
         exit;
     }
 }
-
-// obtener lista de usuarios
-$sql = "SELECT
-    ID_usuario AS ID,
-    username AS Nombre,
-    nivel AS Nivel,
-    Puntos AS Puntos,
-    ID_estado AS Estado
-    FROM usuario";
-
-$result = $con->query($sql);
-$jugadores = $result->fetchAll(PDO::FETCH_ASSOC);
-
-echo json_encode($jugadores);
+?>
 
 

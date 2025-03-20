@@ -1,7 +1,6 @@
 <?php
     session_start();
     require_once('../conex/conex.php');
-    require_once('../include/time.php');
     $conex = new Database;
     $con = $conex->conectar();
 ?>

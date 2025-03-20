@@ -1,7 +1,6 @@
 <?php
     session_start();
     require_once('../conex/conex.php');
-    require_once('../include/time.php');
     $conex = new Database;
     $con = $conex->conectar();
 
@@ -17,7 +16,7 @@
 
         if ($sqlCheck->rowCount() == 0) {
             // Incrementar el número de usuarios en la sala
-            $sqlIncrement = $con->prepare("UPDATE salas SET jugadores = jugadores + 1 WHERE ID_sala = ? AND jugadores < 5");
+            $sqlIncrement = $con->prepare("UPDATE salas SET jugadores = jugadores + 1 WHERE ID_sala = ? AND jugadores < 3");
             $sqlIncrement->execute([$id_sala]);
 
             // Insertar datos de la tabla partidas
@@ -78,7 +77,7 @@
             </div>
 
             <div id="container-contador">
-                <p>Esperando a que se unan 5 jugadores...</p>
+                <p>Esperando a que se unan 3 jugadores...</p>
             </div>
             
         </div>
@@ -102,7 +101,7 @@
                 });
 
                 const jugadores = data.sala.jugadores;
-                if (jugadores >= 5) {
+                if (jugadores >= 3) {
                     iniciarContador();
                 }
             })

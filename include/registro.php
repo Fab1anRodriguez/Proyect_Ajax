@@ -30,7 +30,7 @@ $level = 1;
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
             $insertUsers->execute([$username, $email, $password_enc, $points, $type_user, $estado, $avatar, $level]);
             echo '<script>alert("Usuario Registrado")</script>';
-            echo '<script>window.location = "../login.html"</script>';
+            echo '<script>window.location = "../index.html"</script>';
         }
     }
 ?>

@@ -21,6 +21,21 @@ try {
                          WHERE p.ID_sala = ? 
                          AND p.ID_usuario != ?");
     $sql->execute([$sala_id, $ganador_id]);
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//7:17PM 19/03/2025
+    // obtener las estadísticas de todos los jugadores en la partida
+    $sql = $con->prepare("SELECT ID_usuario, Puntos, headshots, dano_total FROM partidas WHERE ID_sala = ?");
+    $sql->execute([$sala_id]);
+    $jugadores = $sql->fetchAll(PDO::FETCH_ASSOC);
+
+    foreach ($jugadores as $jugador) {
+        $sqlUpdate = $con->prepare("UPDATE usuario 
+                                    SET Puntos = Puntos + ?, 
+                                        headshots = headshots + ?, 
+                                        dano_total = dano_total + ? 
+                                    WHERE ID_usuario = ?");
+        $sqlUpdate->execute([$jugador['Puntos'], $jugador['headshots'], $jugador['dano_total'], $jugador['ID_usuario']]);
+    }
 
     echo json_encode(['success' => true]);
 
