@@ -27,18 +27,15 @@ $sql->execute([$vida_restante, $objetivo_id]);
 $sql = $con->prepare("UPDATE partidas 
                      SET puntos_partida = puntos_partida + ?,
                          dano_total = dano_total + ?,
-                         headshots = CASE 
-                            WHEN ? = 1 THEN headshots + 1
-                            ELSE headshots
-                         END
+                         headshots = headshots + ?
                      WHERE ID_sala = ? AND ID_usuario = ?");
 $sql->execute([
-    $dano,        // puntos igual al daño
-    $dano,        // daño total
-    $esHeadshot,
+    $dano,
+    $dano,
+    $esHeadshot ? 1 : 0,  // Si es headshot, sumar 1, sino 0
     $id_sala,
     $atacante_id
-]);
+]); 
 
 // Devolver respuesta
 echo json_encode([

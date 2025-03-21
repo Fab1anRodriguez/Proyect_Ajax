@@ -1,7 +1,7 @@
 <?php
 try {
-    require_once(__DIR__ . '/../../conex/conex.php'); // usa __dir__ para rutas relativas
-    require __DIR__ . '/../../vendor/autoload.php'; // usa __dir__ para rutas relativas
+    require_once(__DIR__ . '/../../conex/conex.php'); // usamos __dir__ 
+    require __DIR__ . '/../../vendor/autoload.php'; // usamos __dir__ 
 } catch (Exception $e) {
     echo json_encode(['error' => 'error al incluir archivos: ' . $e->getMessage()]);
     exit;
@@ -73,7 +73,7 @@ if (isset($_POST['submit'])) {
         <p>Realizaste una solicitud para cambiar tu contrasena en juego FREE-FIRE. Si no fuiste tu, ignora este correo.</p>
         <p>Haz clic en el siguiente enlace para cambiar tu contrasena:</p>
         <p><a href='http://localhost/juego_FF/PHPMailer-master/nueva_contra.php?token=$token'>Cambiar mi contrasena</a></p>
-        <p>Este enlace de verificacion caducara en 15 minutos.</p>";
+        <p>Gracias por su espera 😊.</p>";
 
         if (sendEmail($correo, $subject, $body)) {
             header("Location: ../recuperar_correo.php?message=ok");
