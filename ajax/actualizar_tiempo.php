@@ -15,7 +15,7 @@ if ($sala) {
 
     // restar 1 segundo
     if ($tiempo > 0) {
-        $tiempo;
+        $tiempo--;
         $sql = $con->prepare("UPDATE salas SET tiempo = ? WHERE ID_sala = ?");
         $sql->execute([$tiempo, $id_sala]);
     }

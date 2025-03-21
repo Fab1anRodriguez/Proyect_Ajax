@@ -17,6 +17,7 @@ $sql = $con->prepare("SELECT usuario.ID_usuario, usuario.username, usuario.vida,
 $sql->execute([$id_sala]);
 $jugadores = $sql->fetchAll(PDO::FETCH_ASSOC);
 
+//hacemos inner join con la tabla partida para mostrar los puntos que lleva nuestro jugador en la partida
 $sql = $con->prepare("SELECT username, vida, Puntos, avatar.imagen
                       FROM usuario 
                       INNER JOIN avatar ON usuario.ID_avatar = avatar.ID_avatar
@@ -52,7 +53,6 @@ $jugadorActual = $sql->fetch(PDO::FETCH_ASSOC);
                         <?php echo $jugadorActual['vida']; ?>/100
                     </div>
                 </div>
-                <p>Puntos: <?php echo $jugadorActual['Puntos']; ?></p>
             </div>
         </div>
 
@@ -133,6 +133,7 @@ $jugadorActual = $sql->fetch(PDO::FETCH_ASSOC);
             window.intervalPuntos = setInterval(actualizarPuntos, 2000);
                     });
 
+        // inicia el temporizador de la partida
         function startTimer() {
             const contadorElement = document.getElementById('container-contador');
             const intervalo = setInterval(function() {
@@ -143,12 +144,12 @@ $jugadorActual = $sql->fetch(PDO::FETCH_ASSOC);
                     success: function(response) {
                         const datos = JSON.parse(response);
                         
-                        //actualizamos el contador
+                        // convierte el tiempo total en minutos y segundos
                         const minutos = Math.floor(datos.tiempo / 60);
                         const segundos = datos.tiempo % 60;
                         contadorElement.innerText = `${minutos}:${segundos < 10 ? '0' : ''}${segundos}`;
 
-                        // vemos si el tiempo ha terminado
+                        // si el tiempo llega a 0, termina la partida
                         if (datos.tiempo <= 0 && !partidaTerminada) {
                             finalizarPartida();
                         }
@@ -160,23 +161,31 @@ $jugadorActual = $sql->fetch(PDO::FETCH_ASSOC);
             }, 1000);
         }
 
+        // detiene la partida y muestra el ganador
         function finalizarPartida() {
             partidaTerminada = true;
             
-            // detieene los intervalos
+            // detiene todas las actualizaciones automaticas
             clearInterval(window.intervalJugadorActual);
             clearInterval(window.intervalOtrosJugadores);
             clearInterval(window.intervalPuntos);
             
-            // determina el gandor con mas vida
+            // busca quien gano la partida
             determinarGanador();
             
-            // redirecciona despues de 5 seg
+            // vuelve al lobby despues de 5 segundos
             setTimeout(() => {
                 window.location.href = '../inicio.php';
             }, 5000);
         }
 
+        // muestra el modal con el nombre del ganador
+        function mostrarGanador(ganador) {
+            $('#modal-ganador').show();
+            $('#nombre-ganador').text(ganador.username);
+        }
+
+        // obtiene el jugador con mas vida y lo declara ganador
         function determinarGanador() {
             $.ajax({
                 url: 'determinar_ganador.php',
@@ -186,47 +195,86 @@ $jugadorActual = $sql->fetch(PDO::FETCH_ASSOC);
                     const datos = JSON.parse(response);
                     if (datos.success) {
                         mostrarGanador(datos.ganador);
-                        evaluarPorUltimoJugador(datos.ganador);  // Primera llamada
+                        if (!estadisticasActualizadas) {
+                            evaluarPorUltimoJugador(datos.ganador);
+                        }
                     }
                 }
             });
         }
 
-        function mostrarGanador(ganador) {
-            $('.modal').hide();
-            const $modalGanador = $('#modal-ganador');
-            $modalGanador.css({
-                'display': 'block',
-                'position': 'fixed',
-                'top': '50%',
-                'left': '50%',
-                'transform': 'translate(-50%, -50%)',
-                'background-color': 'white',
-                'padding': '20px',
-                'border-radius': '5px',
-                'box-shadow': '0 0 10px rgba(0,0,0,0.5)',
-                'z-index': '99999'
-            }).show();
-            $('#nombre-ganador').text(ganador.username);
-            desactivarControlesJuego();
+        // actualiza la informacion de todos los jugadores excepto el actual
+        function actualizarOtrosJugadores() {
+            if (estadisticasActualizadas) return;
+            
+            $.ajax({
+                // obtiene la vida del jugador actual
+                url: 'obtener_vida_actual.php',
+                method: 'GET',
+                data: { usuario_id: USUARIO_ACTUAL_ID },
+                success: function(currentResponse) {
+                    const datosActual = JSON.parse(currentResponse);
+                    $.ajax({
+                        // obtiene la vida de todos los jugadores
+                        url: 'obtener_vidas.php',
+                        data: { sala_id: SALA_ACTUAL_ID },
+                        method: 'GET',
+                        success: function(r) {
+                            const vidas = JSON.parse(r);
+                            let jugadoresVivos = 0;
+                            let ultimoJugadorVivo = null;
+
+                            // cuenta los jugadores vivos y guarda el ultimo
+                            if (parseInt(datosActual.vida) > 0) {
+                                jugadoresVivos++;
+                                ultimoJugadorVivo = {
+                                    ID_usuario: USUARIO_ACTUAL_ID,
+                                    username: $('.jugador-actual h2').text().replace('Username: ', ''),
+                                    vida: datosActual.vida
+                                };
+                            }
+
+                            // actualiza la barra de vida de cada jugador
+                            vidas.forEach(jugador => {
+                                if (jugador.ID_usuario != USUARIO_ACTUAL_ID) {
+                                    const porcentaje = (jugador.vida / 100) * 100;
+                                    $(`.jugador-card[data-id="${jugador.ID_usuario}"] .vida-actual`)
+                                        .css('width', `${porcentaje}%`)
+                                        .text(`${jugador.vida}/100`);
+
+                                    if (parseInt(jugador.vida) > 0) {
+                                        jugadoresVivos++;
+                                        ultimoJugadorVivo = jugador;
+                                    }
+                                }
+                            });
+
+                            // si solo queda un jugador vivo, termina la partida
+                            if (jugadoresVivos === 1 && ultimoJugadorVivo && !estadisticasActualizadas) {
+                                mostrarGanador(ultimoJugadorVivo);
+                                desactivarControlesJuego();
+                                evaluarPorUltimoJugador(ultimoJugadorVivo);
+                            }
+                        }
+                    });
+                }
+            });
         }
 
+        // guarda las estadisticas finales de la partida
         function evaluarPorUltimoJugador(ganador) {
-            if (estadisticasActualizadas) {
-                return;
-            }
-
-            // Detenemos todos los intervalos inmediatamente
+            if (estadisticasActualizadas) return;
+            
+            estadisticasActualizadas = true;
+            
+            // detiene todas las actualizaciones
             clearInterval(window.intervalJugadorActual);
             clearInterval(window.intervalOtrosJugadores);
             clearInterval(window.intervalPuntos);
             
-            // Bloqueamos inmediatamente futuras actualizaciones
-            estadisticasActualizadas = true;
-            
-            // Desactivamos los controles del juego
             desactivarControlesJuego();
             
+            // guarda los datos finales en la base de datos
             $.ajax({
                 url: 'actualizar_estadisticas_partida.php',
                 method: 'POST',

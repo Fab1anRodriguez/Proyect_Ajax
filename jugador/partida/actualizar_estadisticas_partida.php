@@ -8,7 +8,21 @@ $sala_id = $_POST['sala_id'];
 $ganador_id = $_POST['ganador_id'];
 
 try {
+    // Verificar si la partida ya fue actualizada
+    $sqlCheck = $con->prepare("SELECT estado FROM partidas WHERE ID_sala = ? LIMIT 1");
+    $sqlCheck->execute([$sala_id]);
+    $estado = $sqlCheck->fetch(PDO::FETCH_ASSOC);
+    
+    if ($estado && $estado['estado'] === 'finalizada') {
+        echo json_encode(['success' => true, 'message' => 'Estadísticas ya actualizadas']);
+        exit;
+    }
+
     $con->beginTransaction();
+
+    // Marcar la partida como finalizada
+    $sqlUpdateEstado = $con->prepare("UPDATE partidas SET estado = 'finalizada' WHERE ID_sala = ?");
+    $sqlUpdateEstado->execute([$sala_id]);
 
     // Restaurar vida de todos los jugadores
     $sqlVida = $con->prepare("UPDATE usuario u 
