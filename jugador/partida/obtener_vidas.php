@@ -12,7 +12,7 @@ $sql = $con->prepare("SELECT usuario.ID_usuario, usuario.vida, usuario.username
                       FROM usuario 
                       INNER JOIN partidas ON usuario.ID_usuario = partidas.ID_usuario 
                       WHERE partidas.ID_sala = ?");
-$sql->execute([$_GET['sala_id']]);
+$sql->execute([$_GET['sala_id']]);//obtenemos el valor que nos envian por la url
 $vidas = $sql->fetchAll(PDO::FETCH_ASSOC);
 
 // devolvemos las vidas en formato json para que javascript lo entienda

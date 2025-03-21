@@ -111,7 +111,7 @@
     setInterval(updateSala, 1000);
 
     function iniciarContador() {
-        let tiempo = 10;
+        let tiempo = 5;
         const contadorElement = document.getElementById('container-contador');
         const intervalo = setInterval(function() {
             contadorElement.innerText = tiempo;

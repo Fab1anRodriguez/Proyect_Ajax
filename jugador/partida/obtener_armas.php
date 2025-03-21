@@ -9,10 +9,16 @@ $sql = $con->prepare("SELECT nivel FROM usuario WHERE ID_usuario = ?");
 $sql->execute([$_SESSION['id_usuario']]);
 $nivel = $sql->fetch(PDO::FETCH_ASSOC)['nivel'];
 
+// Debug: ver el nivel del jugador
+error_log("Nivel del jugador: " . $nivel);
+
 // obtiene las armas que puede usar segun su nivel
 $sql = $con->prepare("SELECT * FROM armas WHERE nivel_ar <= ?");
 $sql->execute([$nivel]);
 $armas = $sql->fetchAll(PDO::FETCH_ASSOC);
+
+// Debug: ver las armas obtenidas
+error_log("Armas encontradas: " . print_r($armas, true));
 
 // organiza las armas por tipo
 $armasPorTipo = [];
@@ -76,4 +82,4 @@ echo "</div>";
 echo "<div class='armas-footer'>";
 echo "<button onclick='cerrarVentana()' class='btn-cancelar'>cancelar</button>";
 echo "</div>";
-?> 
+?>

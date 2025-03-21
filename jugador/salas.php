@@ -39,7 +39,8 @@
             if (response.ok) {
                 const salas = await response.json();
                 let output = ''; 
-                salas.forEach(function(sala) {
+                // Filtramos solo las salas con menos de 3 jugadores
+                salas.filter(sala => sala.jugadores < 3).forEach(function(sala) {
                     output += `
                         <div class='container-name-salas'>
                             <h4>${sala.nombre_sala}</h4>
@@ -47,7 +48,7 @@
                                 <h4><i class="bi bi-person-fill"></i>${sala.jugadores}/5</h4>
                             </div>
                             <div class="container-button">
-                                ${sala.jugadores < 3 ? `<a href="sala_espera.php?id_sala=${sala.ID_sala}"><button>UNIRSE</button></a>` : `<button disabled class='button-disabled'>LLENO</button>`}
+                                <a href="sala_espera.php?id_sala=${sala.ID_sala}"><button>UNIRSE</button></a>
                             </div>
                         </div>
                     `;

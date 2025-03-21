@@ -142,19 +142,39 @@ $jugadorActual = $sql->fetch(PDO::FETCH_ASSOC);
                     data: { id_sala: SALA_ACTUAL_ID },
                     success: function(response) {
                         const datos = JSON.parse(response);
-                        //calculo de minutos y segundos
+                        
+                        //actualizamos el contador
                         const minutos = Math.floor(datos.tiempo / 60);
                         const segundos = datos.tiempo % 60;
-                        //actualizacion del contador ademas si los segundos
                         contadorElement.innerText = `${minutos}:${segundos < 10 ? '0' : ''}${segundos}`;
-                        //aqui comprobamos si el tiempo es menor o igual a 0, si es asi, se detiene el intervalo y se determina el ganador
-                        if (datos.tiempo <= 0) {
-                            clearInterval(intervalo);
-                            determinarGanador();
+
+                        // vemos si el tiempo ha terminado
+                        if (datos.tiempo <= 0 && !partidaTerminada) {
+                            finalizarPartida();
                         }
+                    },
+                    error: function() {
+                        clearInterval(intervalo);
                     }
                 });
             }, 1000);
+        }
+
+        function finalizarPartida() {
+            partidaTerminada = true;
+            
+            // detieene los intervalos
+            clearInterval(window.intervalJugadorActual);
+            clearInterval(window.intervalOtrosJugadores);
+            clearInterval(window.intervalPuntos);
+            
+            // determina el gandor con mas vida
+            determinarGanador();
+            
+            // redirecciona despues de 5 seg
+            setTimeout(() => {
+                window.location.href = '../inicio.php';
+            }, 5000);
         }
 
         function determinarGanador() {
@@ -166,6 +186,7 @@ $jugadorActual = $sql->fetch(PDO::FETCH_ASSOC);
                     const datos = JSON.parse(response);
                     if (datos.success) {
                         mostrarGanador(datos.ganador);
+                        evaluarPorUltimoJugador(datos.ganador);  // Primera llamada
                     }
                 }
             });
@@ -188,23 +209,44 @@ $jugadorActual = $sql->fetch(PDO::FETCH_ASSOC);
             }).show();
             $('#nombre-ganador').text(ganador.username);
             desactivarControlesJuego();
-            if (!estadisticasActualizadas) {
-                $.ajax({
-                    url: 'actualizar_estadisticas_partida.php',
-                    method: 'POST',
-                    data: {
-                        sala_id: SALA_ACTUAL_ID,
-                        ganador_id: ganador.ID_usuario
-                    },
-                    dataType: 'json',
-                    success: function(response) {
-                        if (response.success) {
-                            estadisticasActualizadas = true;
-                        }
-                    }
-                });
-            }
         }
+
+        function evaluarPorUltimoJugador(ganador) {
+            if (estadisticasActualizadas) {
+                return;
+            }
+
+            // Detenemos todos los intervalos inmediatamente
+            clearInterval(window.intervalJugadorActual);
+            clearInterval(window.intervalOtrosJugadores);
+            clearInterval(window.intervalPuntos);
+            
+            // Bloqueamos inmediatamente futuras actualizaciones
+            estadisticasActualizadas = true;
+            
+            // Desactivamos los controles del juego
+            desactivarControlesJuego();
+            
+            $.ajax({
+                url: 'actualizar_estadisticas_partida.php',
+                method: 'POST',
+                data: {
+                    sala_id: SALA_ACTUAL_ID,
+                    ganador_id: ganador.ID_usuario
+                },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        setTimeout(() => {
+                            window.location.href = '../inicio.php';
+                        }, 5000);
+                    }
+                }
+            });
+        }
+
+
+        ////////////////////////////
 
         function abandonarPartida() {
             $.ajax({
@@ -258,6 +300,7 @@ $jugadorActual = $sql->fetch(PDO::FETCH_ASSOC);
                             let jugadoresVivos = 0;
                             let ultimoJugadorVivo = null;
 
+                            // Contamos jugadores vivos y encontramos al último vivo
                             if (parseInt(datosActual.vida) > 0) {
                                 jugadoresVivos++;
                                 ultimoJugadorVivo = {
@@ -282,11 +325,16 @@ $jugadorActual = $sql->fetch(PDO::FETCH_ASSOC);
                             });
 
                             if (jugadoresVivos === 1 && ultimoJugadorVivo && !estadisticasActualizadas) {
+                                // Primero mostramos el modal del ganador
                                 mostrarGanador(ultimoJugadorVivo);
-                                estadisticasActualizadas = true;
-                                clearInterval(window.intervalJugadorActual);
-                                clearInterval(window.intervalOtrosJugadores);
-                                clearInterval(window.intervalPuntos);
+                                desactivarControlesJuego();
+                                
+                                // Después de 3 segundos actualizamos las estadísticas
+                                setTimeout(() => {
+                                    if (!estadisticasActualizadas) {
+                                        evaluarPorUltimoJugador(ultimoJugadorVivo);
+                                    }
+                                }, 3000);
                             }
                         }
                     });
@@ -334,8 +382,15 @@ $jugadorActual = $sql->fetch(PDO::FETCH_ASSOC);
 
         // guarda el jugador que queremos atacar y muestra las armas
         function seleccionarObjetivo(usuarioId) {
-            objetivoSeleccionado = usuarioId;
-            cargarArmas();
+            //si el objetivo tiene menos vida a 0 o igual a 0 no lo deje ejecutar la funcion cargarArmas
+            const vidaActual = parseInt($(`.jugador-card[data-id="${usuarioId}"] .vida-actual`).text().split('/')[0]);
+            if (vidaActual <= 0) {
+                return;
+            }
+            else{
+                objetivoSeleccionado = usuarioId;
+                cargarArmas();
+            }
         }
 
         // funcion que procesa el ataque a otro jugador
@@ -444,40 +499,7 @@ $jugadorActual = $sql->fetch(PDO::FETCH_ASSOC);
             objetivoSeleccionado = null;
         }
 
-        function mostrarGanador(jugador) {
-            $('.modal').hide();
-            const $modalGanador = $('#modal-ganador');
-            $modalGanador.css({
-                'display': 'block',
-                'position': 'fixed',
-                'top': '50%',
-                'left': '50%',
-                'transform': 'translate(-50%, -50%)',
-                'background-color': 'white',
-                'padding': '20px',
-                'border-radius': '5px',
-                'box-shadow': '0 0 10px rgba(0,0,0,0.5)',
-                'z-index': '99999'
-            }).show();
-            $('#nombre-ganador').text(jugador.username);
-            desactivarControlesJuego();
-            if (!estadisticasActualizadas) {
-                $.ajax({
-                    url: 'actualizar_estadisticas_partida.php',
-                    method: 'POST',
-                    data: {
-                        sala_id: SALA_ACTUAL_ID,
-                        ganador_id: jugador.ID_usuario
-                    },
-                    dataType: 'json',
-                    success: function(response) {
-                        if (response.success) {
-                            estadisticasActualizadas = true;
-                        }
-                    }
-                });
-            }
-        }
+        
     </script>
 </body>
 </html>
