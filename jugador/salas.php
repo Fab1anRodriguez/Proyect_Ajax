@@ -39,8 +39,8 @@
             if (response.ok) {
                 const salas = await response.json();
                 let output = ''; 
-                // Filtramos solo las salas con menos de 3 jugadores
-                salas.filter(sala => sala.jugadores < 3).forEach(function(sala) {
+                // Filtramos salas disponibles y no jugadas
+                salas.filter(sala => sala.jugadores < 5 && sala.estado !== 'jugada').forEach(function(sala) {
                     output += `
                         <div class='container-name-salas'>
                             <h4>${sala.nombre_sala}</h4>

@@ -66,6 +66,10 @@ try {
             $jugador['ID_usuario']
         ]);
     }
+    
+    // Cuando la partida termina
+    $sqlUpdateSala = $con->prepare("UPDATE salas SET estado = 'jugada' WHERE ID_sala = ?");
+    $sqlUpdateSala->execute([$id_sala]);
 
     $con->commit();
     echo json_encode(['success' => true]);

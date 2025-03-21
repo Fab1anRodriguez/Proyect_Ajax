@@ -77,7 +77,7 @@
             </div>
 
             <div id="container-contador">
-                <p>Esperando a que se unan minimo 3 jugadores...</p>
+                <p>Esperando minimo 2 jugadores...</p>
             </div>
             
         </div>
@@ -86,6 +86,7 @@
 <script>
     const id_Sala = <?php echo $id_sala; ?>;
 
+    // nos mestra los jugadores y verifica si hay suficientes para iniciar
     function updateSala() {
         fetch(`../ajax/actualizar_sala.php?id_sala=${id_Sala}`)
             .then(response => response.json())
@@ -93,6 +94,7 @@
                 const elementContainerDivSalas = document.querySelector('.container-div-salas');
                 elementContainerDivSalas.innerHTML = '';
 
+                // Muestra la lista de jugadores en la sala
                 data.sala_time.forEach(partida => {
                     const div = document.createElement('div');
                     div.className = 'container-persons';
@@ -100,29 +102,42 @@
                     elementContainerDivSalas.appendChild(div);
                 });
 
+                // Si hay 2 o mas jugadores, inicia la cuenta regresiva
                 const jugadores = data.sala.jugadores;
-                if (jugadores >= 3) {
+                if (jugadores >= 2) {
                     iniciarContador();
                 }
             })
             .catch(error => console.error('Error:', error));
     }
 
-    setInterval(updateSala, 1000);
+    setInterval(updateSala, 1000);//se ejecuta cada segundo
 
+    //cuenta regresiva de 10 segundos
     function iniciarContador() {
-        let tiempo = 8;
+        let tiempo = 10;
         const contadorElement = document.getElementById('container-contador');
         const intervalo = setInterval(function() {
             contadorElement.innerText = tiempo;
             if (tiempo <= 0) {
                 clearInterval(intervalo);
-                redirigirAPartida();
+                // Marcar la sala como jugada solo cuando el contador llega a 0
+                fetch(`../ajax/actualizar_estado_sala.php?id_sala=${id_Sala}&estado=jugada`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            redirigirAPartida();
+                        } else {
+                            console.error('Error al actualizar estado de sala');
+                        }
+                    });
             }
             tiempo--;
         }, 1000);
     }
 
+    // Funcion que redirecciona a todos los jugadores 
+    // a la pagina de la partida cuando termina el contador
     function redirigirAPartida() {
         window.location.href = `partida/partida.php?id_sala=${id_Sala}`;
     }

@@ -4,11 +4,14 @@ require_once('../../conex/conex.php');
 $conex = new Database;
 $con = $conex->conectar();
 
+// guardamos la ruta donde estan las imagenes de los avatares
 $ruta_avatares = "../../img/avatares/";
 
+// obtenemos el id del jugador actual y el id de la sala 
 $id_usuario = $_SESSION['id_usuario'];
 $id_sala = $_GET['id_sala'];
 
+// esta consulta obtiene los datos de todos los jugadores en la sala
 $sql = $con->prepare("SELECT usuario.ID_usuario, usuario.username, usuario.vida, avatar.imagen 
                       FROM usuario 
                       INNER JOIN partidas ON usuario.ID_usuario = partidas.ID_usuario 
@@ -17,7 +20,7 @@ $sql = $con->prepare("SELECT usuario.ID_usuario, usuario.username, usuario.vida,
 $sql->execute([$id_sala]);
 $jugadores = $sql->fetchAll(PDO::FETCH_ASSOC);
 
-//hacemos inner join con la tabla partida para mostrar los puntos que lleva nuestro jugador en la partida
+// esta consulta obtiene los datos solo del jugador actual (jugador local o jugador propio)
 $sql = $con->prepare("SELECT username, vida, Puntos, avatar.imagen
                       FROM usuario 
                       INNER JOIN avatar ON usuario.ID_avatar = avatar.ID_avatar
@@ -43,7 +46,6 @@ $jugadorActual = $sql->fetch(PDO::FETCH_ASSOC);
     </header>
 
     <main>
-        <!-- mostrar jugador actual -->
         <div class="jugador-actual">
             <h2>Username: <?php echo $jugadorActual['username']; ?></h2>
             <div class="stats">
@@ -56,9 +58,9 @@ $jugadorActual = $sql->fetch(PDO::FETCH_ASSOC);
             </div>
         </div>
 
-        <!-- grid de jugadores -->
         <div class="jugadores-grid">
             <?php foreach($jugadores as $jugador):
+                     // no mostramos al jugador actual en la lista de enemigos
                      if($jugador['ID_usuario'] != $id_usuario): ?>
                     <div class="jugador-card" data-id="<?php echo $jugador['ID_usuario']; ?>">
                         <img src="<?php echo $ruta_avatares . $jugador['imagen']; ?>" alt="Avatar">
@@ -81,7 +83,6 @@ $jugadorActual = $sql->fetch(PDO::FETCH_ASSOC);
     </footer>
     </div>
 
-    <!-- Modal para seleccionar arma -->
     <div id="modal-armas" class="modal">
         <div class="modal-content">
             <h2>Selecciona un arma</h2>
@@ -97,11 +98,9 @@ $jugadorActual = $sql->fetch(PDO::FETCH_ASSOC);
                 <p id="eliminaciones">Eliminaciones: 0</p>
                 <p id="daño-total">Daño total: 0</p>
             </div>
-            <button onclick="location.href='../inicio.php'" class="btn-salir">Volver al lobby</button>
         </div>
     </div>
 
-    <!-- Agregar modal para mostrar ganador -->
     <div id="modal-ganador" class="modal">
         <div class="modal-content">
             <h2>¡Fin de la partida!</h2>
@@ -109,34 +108,35 @@ $jugadorActual = $sql->fetch(PDO::FETCH_ASSOC);
                 <h3>¡El ganador es:</h3>
                 <p id="nombre-ganador"></p>
             </div>
-            <button onclick="location.href='../inicio.php'" class="btn-salir">Volver al lobby</button>
         </div>
     </div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="js/armas.js"></script>
     <script>
-        // variables principales del juego
+        // guardamos el id del jugador y de la sala para usarlos despues
         const USUARIO_ACTUAL_ID = <?php echo $id_usuario; ?>;
         const SALA_ACTUAL_ID = <?php echo $id_sala; ?>;
         
-        // variables para controlar el estado del juego
-        let objetivoSeleccionado = null; // guarda el id del jugador que vamos a atacar
-        let armaActual = null; // guarda el arma seleccionada
-        let partidaTerminada = false; // nos dice si la partida ya termino
+        // variables que necesitamos para controlar el juego
+        let objetivoSeleccionado = null; // guarda el jugador que vamos a atacar
+        let armaActual = null; // guarda el arma que elegimos
+        let partidaTerminada = false; // nos dice si ya se acabo el juego
         let estadisticasActualizadas = false; // nos dice si ya guardamos los resultados
 
+        // cuando carga la pagina, iniciamos todas las funciones necesarias
         $(document).ready(function() {
-            startTimer();
+            startTimer(); // inicia el contador
+            // estas funciones se ejecutan cada 2 segundos para mantener todo actualizado
             window.intervalJugadorActual = setInterval(actualizarJugadorActual, 2000);
             window.intervalOtrosJugadores = setInterval(actualizarOtrosJugadores, 2000);
-            window.intervalPuntos = setInterval(actualizarPuntos, 2000);
-            });
+        });
 
-        // inicia el temporizador de la partida
+        // esta funcion maneja el contador de tiempo
         function startTimer() {
             const contadorElement = document.getElementById('container-contador');
             const intervalo = setInterval(function() {
+                // cada segundo le preguntamos al servidor cuanto tiempo queda
                 $.ajax({
                     url: '../../ajax/actualizar_tiempo.php',
                     method: 'POST',
@@ -144,21 +144,19 @@ $jugadorActual = $sql->fetch(PDO::FETCH_ASSOC);
                     success: function(response) {
                         const datos = JSON.parse(response);
                         
-                        // convierte el tiempo total en minutos y segundos
+                        // convertimosa minutos y segundos para mostrarlos
                         const minutos = Math.floor(datos.tiempo / 60);
                         const segundos = datos.tiempo % 60;
+                        //si el numero de segundo es menor a 10 se le pone un cero a la izquierda
                         contadorElement.innerText = `${minutos}:${segundos < 10 ? '0' : ''}${segundos}`;
 
-                        // si el tiempo llega a 0, termina la partida
+                        // si el tiempo llega a 0, terminamos la partida
                         if (datos.tiempo <= 0 && !partidaTerminada) {
                             finalizarPartida();
                         }
-                    },
-                    error: function() {
-                        clearInterval(intervalo);
                     }
                 });
-            }, 1000);
+            }, 1000); // esto se repite cada segundo
         }
 
         // detiene la partida y muestra el ganador
@@ -185,7 +183,7 @@ $jugadorActual = $sql->fetch(PDO::FETCH_ASSOC);
             $('#nombre-ganador').text(ganador.username);
         }
 
-        // obtiene el jugador con mas vida y lo declara ganador
+        // obtiene el jugador con mas vida y lo declaramos el ganador
         function determinarGanador() {
             $.ajax({
                 url: 'determinar_ganador.php',
@@ -221,16 +219,16 @@ $jugadorActual = $sql->fetch(PDO::FETCH_ASSOC);
                         method: 'GET',
                         success: function(r) {
                             const vidas = JSON.parse(r);
-                            let jugadoresVivos = 0;
+                            let jugadoresVivos = 0;//variable para evaluar al final el condicional de de ultimo jugador en pie
                             let ultimoJugadorVivo = null;
 
-                            // cuenta los jugadores vivos y guarda el ultimo
-                            if (parseInt(datosActual.vida) > 0) {
-                                jugadoresVivos++;
-                                ultimoJugadorVivo = {
-                                    ID_usuario: USUARIO_ACTUAL_ID,
-                                    username: $('.jugador-actual h2').text().replace('Username: ', ''),
-                                    vida: datosActual.vida
+                            // cuenta los jugadores vivos
+                            if (parseInt(datosActual.vida) > 0) {  // si el jugador actual estz vivo
+                                jugadoresVivos++;  // aumentamos el contador de jugadores vivos
+                                ultimoJugadorVivo = {  // guardamos los datos del jugador actual como posible ultimo superviviente
+                                    ID_usuario: USUARIO_ACTUAL_ID,  // ID del jugador actual
+                                    username: $('.jugador-actual h2').text().replace('Username: ', ''),  // nombre del jugador sin el texto "Username: "
+                                    vida: datosActual.vida  // vida actual del jugador
                                 };
                             }
 
@@ -242,10 +240,10 @@ $jugadorActual = $sql->fetch(PDO::FETCH_ASSOC);
                                         .css('width', `${porcentaje}%`)
                                         .text(`${jugador.vida}/100`);
 
-                                    if (parseInt(jugador.vida) > 0) {
-                                        jugadoresVivos++;
-                                        ultimoJugadorVivo = jugador;
-                                    }
+                                        if (parseInt(jugador.vida) > 0) {  // Verifica a los otros jugadores
+                                            jugadoresVivos++;
+                                            ultimoJugadorVivo = jugador;
+                                        }                                       
                                 }
                             });
 
@@ -270,7 +268,6 @@ $jugadorActual = $sql->fetch(PDO::FETCH_ASSOC);
             // detiene todas las actualizaciones
             clearInterval(window.intervalJugadorActual);
             clearInterval(window.intervalOtrosJugadores);
-            clearInterval(window.intervalPuntos);
             
             desactivarControlesJuego();
             
@@ -287,7 +284,7 @@ $jugadorActual = $sql->fetch(PDO::FETCH_ASSOC);
                     if (response.success) {
                         setTimeout(() => {
                             window.location.href = '../inicio.php';
-                        }, 5000);
+                        }, 2000);
                     }
                 }
             });
@@ -382,24 +379,10 @@ $jugadorActual = $sql->fetch(PDO::FETCH_ASSOC);
                                     if (!estadisticasActualizadas) {
                                         evaluarPorUltimoJugador(ultimoJugadorVivo);
                                     }
-                                }, 3000);
+                                }, 2000);
                             }
                         }
                     });
-                }
-            });
-        }
-
-        function actualizarPuntos() {
-            $.ajax({
-                url: 'obtener_estadisticas.php',
-                method: 'GET',
-                data: { usuario_id: USUARIO_ACTUAL_ID },
-                success: function(r) {
-                    const datos = JSON.parse(r);
-                    if (datos && datos.Puntos !== undefined) {
-                        $('.jugador-actual .stats p').text(`Puntos: ${datos.Puntos}`);
-                    }
                 }
             });
         }
@@ -500,7 +483,7 @@ $jugadorActual = $sql->fetch(PDO::FETCH_ASSOC);
                                             mostrarMensaje(`Daño causado: ${data.dano_causado}`, 'info');
                                             cerrarVentana();
                                         }
-                                        actualizarPuntos();//al final actualizamos los puntos
+                                        
                                     } else {
                                         mostrarMensaje('Error al realizar el ataque', 'error');//por si no se pudo realizar el ataque, mostramos este mensaje                                    }
                                     cerrarVentana();//y llamamos a la funcion cerrarVentana() para cerrar la ventana :b

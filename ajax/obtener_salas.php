@@ -6,29 +6,31 @@ $con = $conex->conectar();
 
 if (isset($_GET['id_select_sala'])) {
     $id_select_sala = $_GET['id_select_sala'];
-    $sqlSalas = $con->prepare("SELECT * FROM salas WHERE ID_mapas = ?");
+    
+    // Verificar si ya existe una sala disponible
+    $sqlSalas = $con->prepare("SELECT * FROM salas 
+                              WHERE ID_mapas = ? 
+                              AND estado = 'disponible' 
+                              AND jugadores < 5 
+                              LIMIT 1");
     $sqlSalas->execute([$id_select_sala]);
     $salas = $sqlSalas->fetchAll(PDO::FETCH_ASSOC);
 
-    // verificar si todas las salas estan llenas
-    $todasLlenas = true;
-    foreach ($salas as $sala) {
-        //verificamos si quedan espacios vacios menos de 3 en la sala
-        if ($sala['jugadores'] < 3) {
-            // si encuentra una sala con espacio vacio mara la variable como false y sale del bucle
-            $todasLlenas = false;
-            break;
+    // Crear nueva sala solo si no existe ninguna disponible y la última está en estado 'jugada'
+    if (empty($salas)) {
+        $sqlCheckJugada = $con->prepare("SELECT estado, nombre_sala FROM salas WHERE ID_mapas = ? ORDER BY ID_sala DESC LIMIT 1");
+        $sqlCheckJugada->execute([$id_select_sala]);
+        $ultimaSala = $sqlCheckJugada->fetch(PDO::FETCH_ASSOC);
+
+        if ($ultimaSala && $ultimaSala['estado'] === 'jugada') {
+            $sqlNuevaSala = $con->prepare("INSERT INTO salas (nombre_sala, jugadores, ID_mapas, tiempo, estado) 
+                                          VALUES (?, 0, ?, 300, 'disponible')");
+            $sqlNuevaSala->execute([$ultimaSala['nombre_sala'], $id_select_sala]);
+            
+            $sqlSalas = $con->prepare("SELECT * FROM salas WHERE ID_mapas = ? AND estado = 'disponible' LIMIT 1");
+            $sqlSalas->execute([$id_select_sala]);
+            $salas = $sqlSalas->fetchAll(PDO::FETCH_ASSOC);
         }
-    }
-
-    // crear una nueva sala si todas estan llenas
-    if ($todasLlenas) {// si es true pasa a crear una nueva sala
-        $nuevoNombreSala = "Sala " . (count($salas) + 1);
-        $sqlNuevaSala = $con->prepare("INSERT INTO salas (nombre_sala, jugadores, ID_mapas, tiempo) VALUES (?, 0, ?, 300)");
-        $sqlNuevaSala->execute([$nuevoNombreSala, $id_select_sala]);
-
-        $sqlSalas->execute([$id_select_sala]);
-        $salas = $sqlSalas->fetchAll(PDO::FETCH_ASSOC);
     }
 
     echo json_encode($salas);
