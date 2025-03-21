@@ -7,7 +7,6 @@ header('Content-Type: application/json');
 $conexion = new database();
 $con = $conexion->conectar();
 
-// procesar solicitudes post
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $data = json_decode(file_get_contents('php://input'), true);
     
@@ -18,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $exito = $stmt->execute([$data['estado'], $data['id']]);
 
             if ($exito) {
-                if ($data['estado'] == 1) { // asumiendo que 1 es el estado activo
+                if ($data['estado'] == 1) { // estado activo
                     // obtener email y username del usuario
                     $stmt = $con->prepare("SELECT email, username FROM usuario WHERE ID_usuario = ?");
                     $stmt->execute([$data['id']]);

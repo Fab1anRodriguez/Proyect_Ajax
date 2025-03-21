@@ -131,7 +131,7 @@ $jugadorActual = $sql->fetch(PDO::FETCH_ASSOC);
             window.intervalJugadorActual = setInterval(actualizarJugadorActual, 2000);
             window.intervalOtrosJugadores = setInterval(actualizarOtrosJugadores, 2000);
             window.intervalPuntos = setInterval(actualizarPuntos, 2000);
-                    });
+            });
 
         // inicia el temporizador de la partida
         function startTimer() {

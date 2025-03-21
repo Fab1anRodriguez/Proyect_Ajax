@@ -2,27 +2,22 @@
 include '../conex/conex.php';
 header('Content-Type: application/json');
 
-// crear conexion
 $conexion = new database();
 $con = $conexion->conectar();
-
-// consulta para obtener estadisticas de jugadores
+//aqui hacemos la consulta para obtener las estadisticas de los usuarios
+//hacemos el cpunt para obtener el total de partidas jugadas
 $sql = "SELECT 
-    u.ID_usuario, 
-    u.username, 
-    COUNT(p.ID_partida) AS partidas_jugadas,
-    SUM(p.puntos_partida) AS total_puntos,
-    SUM(p.dano_total) AS total_dano,
-    SUM(p.headshots) AS total_headshots,
-    u.partidas_ganadas, 
-    u.partidas_perdidas
-    FROM usuario u
-    LEFT JOIN partidas p ON u.ID_usuario = p.ID_usuario
-    GROUP BY u.ID_usuario";
+    username,
+    (SELECT COUNT(*) FROM partidas WHERE partidas.ID_usuario = usuario.ID_usuario) as partidas_jugadas,
+    IFNULL(Puntos, 0) as total_puntos,
+    IFNULL(dano_total, 0) as total_dano,
+    IFNULL(headshots, 0) as total_headshots,
+    IFNULL(partidas_ganadas, 0) as partidas_ganadas,
+    IFNULL(partidas_perdidas, 0) as partidas_perdidas
+    FROM usuario";
 
-// ejecutar consulta y devolver resultados
 $result = $con->query($sql);
 $estadisticas = $result->fetchAll(PDO::FETCH_ASSOC);
 
-echo json_encode($estadisticas); 
+echo json_encode($estadisticas, JSON_NUMERIC_CHECK);
 ?>

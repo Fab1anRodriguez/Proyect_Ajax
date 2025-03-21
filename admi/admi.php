@@ -145,8 +145,9 @@ $con = $conexion->conectar();
                     if (reporteBody) {
                         reporteBody.innerHTML = "";
                         data.forEach(jugador => {
+                            const rowClass = jugador.partidas_jugadas === 0 ? 'text-danger opacity-75' : '';
                             reporteBody.innerHTML += `
-                                <tr>
+                                <tr class="${rowClass}">
                                     <td>${jugador.username}</td>
                                     <td>${jugador.partidas_jugadas}</td>
                                     <td>${jugador.total_puntos}</td>

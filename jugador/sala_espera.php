@@ -77,7 +77,7 @@
             </div>
 
             <div id="container-contador">
-                <p>Esperando a que se unan 3 jugadores...</p>
+                <p>Esperando a que se unan minimo 3 jugadores...</p>
             </div>
             
         </div>
@@ -111,7 +111,7 @@
     setInterval(updateSala, 1000);
 
     function iniciarContador() {
-        let tiempo = 5;
+        let tiempo = 8;
         const contadorElement = document.getElementById('container-contador');
         const intervalo = setInterval(function() {
             contadorElement.innerText = tiempo;

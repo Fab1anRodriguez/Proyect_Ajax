@@ -20,8 +20,11 @@ try {
 
     $con->beginTransaction();
 
-    // Marcar la partida como finalizada
-    $sqlUpdateEstado = $con->prepare("UPDATE partidas SET estado = 'finalizada' WHERE ID_sala = ?");
+    // Marcar la partida como finalizada y actualizar fecha_fin
+    $sqlUpdateEstado = $con->prepare("UPDATE partidas 
+                                    SET estado = 'finalizada',
+                                    fecha_fin = NOW() 
+                                    WHERE ID_sala = ?");
     $sqlUpdateEstado->execute([$sala_id]);
 
     // Restaurar vida de todos los jugadores
